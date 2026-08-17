@@ -11,16 +11,27 @@ API-роуты. Поэтому используется официальный *
 
 ---
 
+## Репозиторий
+
+Код лежит здесь: **https://github.com/leykalee/noviy-mineral** (ветка `main`).
+
 ## Вариант 1. Через интерфейс Netlify
 
-1. Залить проект в Git-репозиторий (GitHub / GitLab).
-2. Netlify → **Add new site** → **Import an existing project** → выбрать репозиторий.
-3. Настройки сборки Netlify подхватит из `netlify.toml`:
-   - Build command: `npm run build`
-   - Publish directory: `.next`
-   - Node version: 22
-4. **Site configuration → Environment variables** — добавить переменные (см. ниже).
-5. **Deploy site**.
+1. Открыть **https://app.netlify.com** и войти — удобнее сразу кнопкой
+   **Log in with GitHub**, тогда доступ к репозиториям выдастся автоматически.
+2. **Add new site** (или **Add new project**) → **Import an existing project**.
+3. **Deploy with GitHub** → при первом входе нажать **Authorize Netlify**.
+   Если репозитория нет в списке — **Configure the Netlify app on GitHub**
+   и дать доступ к `noviy-mineral`.
+4. Выбрать репозиторий **noviy-mineral**.
+5. Ничего не менять: команда сборки, папка публикации и версия Node уже заданы
+   в `netlify.toml`. Нажать **Deploy**.
+   Первая сборка занимает 2–4 минуты.
+6. После сборки Netlify выдаст адрес вида `https://<случайное-имя>.netlify.app`.
+7. **Site configuration → Environment variables → Add a variable** →
+   `NEXT_PUBLIC_SITE_URL` = адрес из шага 6.
+8. **Deploys → Trigger deploy → Clear cache and deploy site** — чтобы canonical,
+   OpenGraph и `sitemap.xml` пересобрались с боевым адресом.
 
 ## Вариант 2. Через CLI
 
