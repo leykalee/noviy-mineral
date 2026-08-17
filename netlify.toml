@@ -1,0 +1,39 @@
+# Деплой «Нового Минерала» на Netlify.
+#
+# Сайт — не статика: каталог фильтруется и постранично отдаётся на сервере,
+# плюс есть API-роуты (поиск, расчёт доставки, создание заказа). Поэтому
+# используется официальный Next.js Runtime, а не `output: export`.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Next.js 16 требует Node 20.9+; берём 22 LTS
+  NODE_VERSION = "22"
+  # Не блокируем сборку предупреждениями npm
+  NPM_FLAGS = "--no-audit --no-fund"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Заголовки безопасности. Ключи интеграций живут только в переменных окружения
+# Netlify и в клиентский бандл не попадают.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Ассеты бренда и demo-фотографии не меняются в рамках релиза
+[[headers]]
+  for = "/brand/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/demo/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

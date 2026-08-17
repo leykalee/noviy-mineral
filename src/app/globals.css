@@ -1,0 +1,236 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   Дизайн-токены (п.50 ТЗ)
+   Фирменные цвета сняты с оригинальной аватарки VK, см. src/config/brand.ts.
+   Никаких HEX-значений в компонентах — только эти переменные.
+   ========================================================================== */
+
+:root {
+  /* Бренд */
+  --brand: #0c676a; /* тёмно-бирюзовый — фон логотипа, основной CTA */
+  --brand-hover: #095356;
+  --brand-active: #073f42;
+  --brand-soft: #e6f2f2; /* светлая подложка под бренд-акценты */
+  --brand-soft-hover: #d6ebeb;
+  --brand-bright: #2ab8c6; /* яркий бирюзовый — заливка кристалла в логотипе */
+
+  /* Поверхности и текст */
+  --background: #ffffff;
+  --surface: #f5f8f8; /* секции, чередующие белый фон */
+  --surface-strong: #eceff0; /* плейсхолдер изображения, скелетоны */
+  --foreground: #101a1b;
+  --muted: #f0f3f3;
+  --muted-foreground: #5a6a6b;
+  --border: #e2e8e8;
+  --border-strong: #cdd6d6;
+
+  /* Статусы */
+  --success: #10704a;
+  --success-soft: #e4f2ec;
+  --warning: #9a5b00;
+  --warning-soft: #fbf0dd;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+
+  /* Радиусы — умеренные, без «огромного border-radius» из п.6 ТЗ */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Тени — минимум, только для всплывающих слоёв */
+  --shadow-pop: 0 6px 28px -8px rgb(16 26 27 / 0.16), 0 2px 8px -4px rgb(16 26 27 / 0.1);
+  --shadow-sheet: 0 -8px 32px -12px rgb(16 26 27 / 0.2);
+
+  /* Движение — 150–250 ms (п.67 ТЗ) */
+  --dur-fast: 150ms;
+  --dur: 200ms;
+  --dur-slow: 250ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Раскладка */
+  --container: 1440px;
+  --header-h: 132px;
+  --header-h-mobile: 108px;
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-active: var(--brand-active);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-soft-hover: var(--brand-soft-hover);
+  --color-brand-bright: var(--brand-bright);
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --font-sans: var(--font-onest), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --breakpoint-xs: 390px;
+}
+
+/* ==========================================================================
+   База
+   ========================================================================== */
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  /* защита от горизонтального переполнения (п.72 ТЗ) */
+  overflow-x: clip;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Цены и артикулы: моноширинные цифры, чтобы столбцы не «плясали» */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Единый заметный focus-ring (п.55 ТЗ) */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* Скрыть визуально, оставить для скринридера */
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Контейнер страницы */
+.container-page {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+@media (min-width: 768px) {
+  .container-page {
+    padding-inline: 32px;
+  }
+}
+@media (min-width: 1280px) {
+  .container-page {
+    padding-inline: 48px;
+  }
+}
+
+/* Скелетон загрузки */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.skeleton {
+  background: var(--surface-strong);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+/* Мягкое появление выпадающих слоёв */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-pop-in {
+  animation: pop-in var(--dur) var(--ease);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+.animate-sheet-up {
+  animation: sheet-up var(--dur-slow) var(--ease);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in var(--dur) var(--ease);
+}
+
+/* Тонкий скроллбар в фильтрах и панелях */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* Безопасная зона для sticky-панели на мобильных (п.54 ТЗ) */
+.safe-bottom {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
