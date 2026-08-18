@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Icon } from '@/components/common/Icon';
+import { Portal } from '@/components/common/Portal';
 import { megaMenu } from '@/config/navigation';
 import { cx } from '@/lib/cx';
 
@@ -57,11 +58,13 @@ export function MegaMenu() {
       {open && (
         <>
           {/* затемнение под панелью, чтобы каталог читался как отдельный слой */}
-          <div
-            className="animate-fade-in fixed inset-0 top-[var(--header-h)] z-30 bg-foreground/20"
-            aria-hidden="true"
-            onClick={() => setOpen(false)}
-          />
+          <Portal>
+            <div
+              className="animate-fade-in fixed inset-0 top-[var(--header-h)] z-30 bg-foreground/20"
+              aria-hidden="true"
+              onClick={() => setOpen(false)}
+            />
+          </Portal>
           <div
             id={panelId}
             className="animate-pop-in absolute left-0 top-[calc(100%+10px)] z-40 w-[min(1100px,calc(100vw-64px))] rounded-[var(--radius-md)] border border-border bg-white p-7 shadow-[var(--shadow-pop)]"

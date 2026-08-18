@@ -1,10 +1,9 @@
-import Link from 'next/link';
 import { Logo } from '@/components/brand/Logo';
 import { HeaderActions } from '@/components/layout/HeaderActions';
 import { MegaMenu } from '@/components/layout/MegaMenu';
 import { MobileMenu } from '@/components/layout/MobileMenu';
+import { PrimaryNav } from '@/components/layout/PrimaryNav';
 import { SearchBar } from '@/components/search/SearchBar';
-import { primaryNav } from '@/config/navigation';
 
 /**
  * Шапка (п.9 ТЗ).
@@ -45,18 +44,7 @@ export function Header() {
         {/* навигация — только desktop */}
         <nav aria-label="Основная навигация" className="hidden h-14 items-center gap-1 lg:flex">
           <MegaMenu />
-          <ul className="ml-2 flex items-center gap-1">
-            {primaryNav.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="inline-flex h-10 items-center rounded-[var(--radius-sm)] px-3.5 text-[15px] text-foreground transition-colors duration-[var(--dur-fast)] hover:bg-brand-soft hover:text-brand"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <PrimaryNav />
         </nav>
       </div>
     </header>

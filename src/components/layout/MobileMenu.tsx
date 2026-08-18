@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/common/Icon';
+import { Portal } from '@/components/common/Portal';
 import { megaMenu, primaryNav } from '@/config/navigation';
 import { cx } from '@/lib/cx';
 
@@ -77,7 +78,8 @@ export function MobileMenu() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[100] lg:hidden">
+        <Portal>
+          <div className="fixed inset-0 z-[100] lg:hidden">
           <div
             className="animate-fade-in absolute inset-0 bg-foreground/40"
             onClick={close}
@@ -180,9 +182,10 @@ export function MobileMenu() {
                   </ul>
                 </>
               )}
+              </div>
             </div>
           </div>
-        </div>
+        </Portal>
       )}
     </>
   );

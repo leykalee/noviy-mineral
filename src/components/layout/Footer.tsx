@@ -18,9 +18,13 @@ export function Footer() {
   return (
     <footer className="mt-20 border-t border-border bg-surface">
       <div className="container-page py-12 lg:py-16">
-        <div className="grid gap-10 lg:grid-cols-[300px_1fr]">
+        <div className="grid gap-x-10 gap-y-12 lg:grid-cols-[minmax(240px,280px)_1fr]">
           <div>
-            <Link href="/" className="inline-flex items-center gap-3" aria-label="Новый Минерал — на главную">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3"
+              aria-label="Новый Минерал — на главную"
+            >
               <Image
                 src={brandAssets.markBadge}
                 alt=""
@@ -47,18 +51,18 @@ export function Footer() {
             )}
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-x-8 gap-y-10">
             {footerNav.map((column) => (
               <nav key={column.title} aria-label={column.title}>
-                <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                <h3 className="mb-4 flex h-5 items-center text-[13px] font-semibold uppercase leading-none tracking-[0.08em] text-muted-foreground">
                   {column.title}
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-2.5">
                   {column.links.map((link) => (
                     <li key={link.href}>
                       <Link
                         href={link.href}
-                        className="text-[15px] text-foreground transition-colors duration-[var(--dur-fast)] hover:text-brand"
+                        className="block text-[15px] leading-6 text-foreground transition-colors duration-[var(--dur-fast)] hover:text-brand"
                       >
                         {link.label}
                       </Link>
@@ -70,10 +74,10 @@ export function Footer() {
 
             {hasAnyContact() && (
               <div>
-                <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                <h3 className="mb-4 flex h-5 items-center text-[13px] font-semibold uppercase leading-none tracking-[0.08em] text-muted-foreground">
                   Контакты
                 </h3>
-                <ul className="space-y-2 text-[15px]">
+                <ul className="space-y-2.5 text-[15px]">
                   {contacts.phone && (
                     <li>
                       <a href={`tel:${contacts.phone.replace(/[^+\d]/g, '')}`} className="hover:text-brand">

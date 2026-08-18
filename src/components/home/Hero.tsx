@@ -17,8 +17,8 @@ export function Hero({ products }: { products: Product[] }) {
 
   return (
     <section className="container-page pt-8 lg:pt-14" aria-labelledby="hero-title">
-      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-16">
-        <div>
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-14">
+        <div className="lg:pt-2">
           <p className="mb-4 inline-flex items-center gap-2 rounded-[var(--radius-xs)] bg-brand-soft px-3 py-1.5 text-[13px] font-medium text-brand">
             <Icon name="sparkle" size={15} />
             Каждый образец продаётся отдельным экземпляром

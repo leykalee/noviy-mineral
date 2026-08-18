@@ -32,8 +32,8 @@ export function ProductCard({
   const secondImage = product.images[1];
 
   return (
-    <article className="group relative">
-      <Link href={`/product/${product.slug}`} className="block">
+    <article className="group relative flex h-full flex-col">
+      <Link href={`/product/${product.slug}`} className="block shrink-0">
         <div
           className={cx(
             'relative aspect-4/3 overflow-hidden rounded-[var(--radius-md)] bg-surface-strong',
@@ -84,15 +84,17 @@ export function ProductCard({
         className="absolute right-2 top-2"
       />
 
-      <div className="pt-3">
+      {/* высоты строк зафиксированы: иначе у соседних карточек цена оказывается
+          на разной высоте, когда название занимает одну строку, а не две */}
+      <div className="flex flex-1 flex-col pt-3">
         <Link href={`/product/${product.slug}`} className="block">
-          <h3 className="text-[16px] font-medium leading-snug text-foreground transition-colors duration-[var(--dur-fast)] group-hover:text-brand">
+          <h3 className="line-clamp-2 min-h-[44px] text-[16px] font-medium leading-snug text-foreground transition-colors duration-[var(--dur-fast)] group-hover:text-brand">
             {product.name}
           </h3>
         </Link>
-        {subtitle && (
-          <p className="mt-0.5 line-clamp-1 text-[14px] text-muted-foreground">{subtitle}</p>
-        )}
+        <p className="mt-0.5 line-clamp-1 min-h-[20px] text-[14px] text-muted-foreground">
+          {subtitle ?? '\u00A0'}
+        </p>
 
         <div className="mt-2 flex items-baseline gap-2">
           <span
@@ -110,9 +112,9 @@ export function ProductCard({
           )}
         </div>
 
-        {product.uniquePiece && product.status === 'available' && (
-          <p className="mt-1 text-[13px] text-muted-foreground">Единственный экземпляр</p>
-        )}
+        <p className="mt-1 min-h-[18px] text-[13px] text-muted-foreground">
+          {product.uniquePiece && product.status === 'available' ? 'Единственный экземпляр' : '\u00A0'}
+        </p>
       </div>
     </article>
   );
