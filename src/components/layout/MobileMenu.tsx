@@ -118,6 +118,20 @@ export function MobileMenu() {
             <div className="flex-1 overflow-y-auto scroll-thin">
               {activeSection ? (
                 <ul className="p-2">
+                  {/* без этого пункта раздел целиком открыть было нельзя —
+                      только отдельные подкатегории */}
+                  {activeSection.allLink && (
+                    <li>
+                      <Link
+                        href={activeSection.allLink.href}
+                        onClick={close}
+                        className="mb-1 flex items-center justify-between gap-2 rounded-[var(--radius-sm)] bg-brand-soft px-3 py-3 text-[16px] font-medium text-brand"
+                      >
+                        {activeSection.allLink.label}
+                        <Icon name="arrow-right" size={20} />
+                      </Link>
+                    </li>
+                  )}
                   {activeSection.links.map((link) => (
                     <li key={link.href + link.label}>
                       <Link

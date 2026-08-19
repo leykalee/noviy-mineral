@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Product } from '@/types';
 import { FavoriteButton } from '@/components/common/FavoriteButton';
 import { StatusBadge, Tag } from '@/components/common/StatusBadge';
+import { QuickAddButton } from '@/components/catalog/QuickAddButton';
 import { discountPercent, formatPrice } from '@/lib/format';
 import { mineralById } from '@/data/demo/taxonomy';
 import { cx } from '@/lib/cx';
@@ -84,37 +85,43 @@ export function ProductCard({
         className="absolute right-2 top-2"
       />
 
-      {/* высоты строк зафиксированы: иначе у соседних карточек цена оказывается
-          на разной высоте, когда название занимает одну строку, а не две */}
+      {/* цена прижата к низу: так она стоит на одной линии у всех карточек ряда,
+          а между названием и происхождением не появляется пустая строка */}
       <div className="flex flex-1 flex-col pt-3">
         <Link href={`/product/${product.slug}`} className="block">
-          <h3 className="line-clamp-2 min-h-[44px] text-[16px] font-medium leading-snug text-foreground transition-colors duration-[var(--dur-fast)] group-hover:text-brand">
+          <h3 className="line-clamp-2 text-[16px] font-medium leading-snug text-foreground transition-colors duration-[var(--dur-fast)] group-hover:text-brand">
             {product.name}
           </h3>
         </Link>
-        <p className="mt-0.5 line-clamp-1 min-h-[20px] text-[14px] text-muted-foreground">
-          {subtitle ?? '\u00A0'}
-        </p>
+        {subtitle && (
+          <p className="mt-0.5 line-clamp-1 text-[14px] text-muted-foreground">{subtitle}</p>
+        )}
 
-        <div className="mt-2 flex items-baseline gap-2">
-          <span
-            className={cx(
-              'tnum text-[17px] font-semibold',
-              unavailable ? 'text-muted-foreground' : 'text-foreground',
-            )}
-          >
-            {formatPrice(product.price)}
-          </span>
-          {product.oldPrice && product.oldPrice > product.price && (
-            <span className="tnum text-[14px] text-muted-foreground line-through">
-              {formatPrice(product.oldPrice)}
+        {product.uniquePiece && product.status === 'available' && (
+          <p className="mt-1 text-[13px] text-muted-foreground">Единственный экземпляр</p>
+        )}
+
+        {/* цена и кнопка — одной строкой в самом низу, чтобы подпись выше
+            не переносилась и не наезжала на кнопку на узких экранах */}
+        <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+            <span
+              className={cx(
+                'tnum text-[17px] font-semibold',
+                unavailable ? 'text-muted-foreground' : 'text-foreground',
+              )}
+            >
+              {formatPrice(product.price)}
             </span>
-          )}
-        </div>
+            {product.oldPrice && product.oldPrice > product.price && (
+              <span className="tnum text-[14px] text-muted-foreground line-through">
+                {formatPrice(product.oldPrice)}
+              </span>
+            )}
+          </div>
 
-        <p className="mt-1 min-h-[18px] text-[13px] text-muted-foreground">
-          {product.uniquePiece && product.status === 'available' ? 'Единственный экземпляр' : '\u00A0'}
-        </p>
+          <QuickAddButton product={product} />
+        </div>
       </div>
     </article>
   );

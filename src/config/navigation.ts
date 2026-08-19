@@ -17,13 +17,15 @@ export interface NavLink {
 export interface MegaMenuColumn {
   title: string;
   links: NavLink[];
+  /** Ссылка «весь раздел» — первый пункт при заходе в группу на мобильных */
+  allLink?: NavLink;
 }
 
 export const megaMenu: MegaMenuColumn[] = [
   {
     title: 'Минералы',
+    allLink: { label: 'Все минералы', href: '/catalog/minerals' },
     links: [
-      { label: 'Коллекционные минералы', href: '/catalog/minerals' },
       { label: 'Кристаллы', href: '/catalog/crystals' },
       { label: 'Друзы и щётки', href: '/catalog/druzes' },
       { label: 'Полированные камни', href: '/catalog/polished' },
@@ -33,16 +35,16 @@ export const megaMenu: MegaMenuColumn[] = [
   },
   {
     title: 'Изделия',
+    allLink: { label: 'Все изделия', href: '/catalog/crafts' },
     links: [
-      { label: 'Изделия из камня', href: '/catalog/crafts' },
       { label: 'Шары и яйца', href: '/catalog/spheres' },
       { label: 'Декор', href: '/catalog/decor' },
     ],
   },
   {
     title: 'Украшения',
+    allLink: { label: 'Все украшения', href: '/catalog/jewelry' },
     links: [
-      { label: 'Все украшения', href: '/catalog/jewelry' },
       { label: 'Браслеты', href: '/catalog/bracelets' },
       { label: 'Кулоны', href: '/catalog/pendants' },
       { label: 'Серьги', href: '/catalog/earrings' },
@@ -50,6 +52,7 @@ export const megaMenu: MegaMenuColumn[] = [
   },
   {
     title: 'Для коллекционеров',
+    allLink: { label: 'Весь каталог', href: '/catalog' },
     links: [
       { label: 'По минералам', href: '/catalog?sort=name', hint: 'Аметист, флюорит, пирит и другие' },
       { label: 'По месторождениям', href: '/catalog?country=Россия', hint: 'Дальнегорск, Урал, Хибины' },
@@ -59,6 +62,7 @@ export const megaMenu: MegaMenuColumn[] = [
   },
   {
     title: 'Другое',
+    allLink: { label: 'Весь каталог', href: '/catalog' },
     links: [
       { label: 'Книги', href: '/catalog/books' },
       { label: 'Сопутствующие товары', href: '/catalog/accessories' },

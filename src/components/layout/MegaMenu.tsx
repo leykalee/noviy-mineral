@@ -57,12 +57,16 @@ export function MegaMenu() {
 
       {open && (
         <>
-          {/* затемнение под панелью, чтобы каталог читался как отдельный слой */}
+          {/*
+            Затемнение только подсвечивает панель и НЕ перехватывает клики:
+            иначе первый клик по странице уходил в оверлей и просто закрывал меню,
+            а кнопка под курсором не срабатывала. Закрытие обеспечивает
+            обработчик mousedown на document.
+          */}
           <Portal>
             <div
-              className="animate-fade-in fixed inset-0 top-[var(--header-h)] z-30 bg-foreground/20"
+              className="animate-fade-in pointer-events-none fixed inset-0 top-[var(--header-h)] z-30 bg-foreground/20"
               aria-hidden="true"
-              onClick={() => setOpen(false)}
             />
           </Portal>
           <div
@@ -76,6 +80,17 @@ export function MegaMenu() {
                     {column.title}
                   </h3>
                   <ul className="space-y-0.5">
+                    {column.allLink && (
+                      <li>
+                        <Link
+                          href={column.allLink.href}
+                          onClick={() => setOpen(false)}
+                          className="block rounded-[var(--radius-xs)] px-2 py-1.5 text-[15px] font-medium text-brand transition-colors duration-[var(--dur-fast)] hover:bg-brand-soft"
+                        >
+                          {column.allLink.label}
+                        </Link>
+                      </li>
+                    )}
                     {column.links.map((link) => (
                       <li key={link.href + link.label}>
                         <Link

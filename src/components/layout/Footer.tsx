@@ -16,7 +16,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-20 border-t border-border bg-surface">
+    <footer className="border-t border-border bg-surface">
       <div className="container-page py-12 lg:py-16">
         <div className="grid gap-x-10 gap-y-12 lg:grid-cols-[minmax(240px,280px)_1fr]">
           <div>
