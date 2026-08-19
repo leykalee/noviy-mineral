@@ -16,6 +16,8 @@ export function SectionHeader({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 lg:mb-8">
       <div>
+        {/* короткий бирюзовый штрих — тот же цвет, что у кристалла в логотипе */}
+        <span aria-hidden="true" className="mb-3 block h-1 w-10 rounded-full bg-brand-bright" />
         <h2
           id={id}
           className="text-[26px] font-semibold leading-tight tracking-[-0.01em] sm:text-[30px]"

@@ -50,8 +50,10 @@ export function Tag({
 }) {
   const tones = {
     neutral: 'bg-white/92 text-foreground',
-    brand: 'bg-brand text-white',
-    sale: 'bg-danger text-white',
+    // яркий бирюзовый из логотипа + тёмный текст: контраст 7.4:1
+    brand: 'bg-brand-bright text-foreground',
+    // скидка — тёплым акцентом из фотографий минералов, а не тревожным красным
+    sale: 'bg-accent text-white',
   } as const;
 
   return (

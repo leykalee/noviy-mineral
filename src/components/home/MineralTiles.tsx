@@ -13,7 +13,8 @@ export function MineralTiles({ items }: { items: { mineral: Mineral; count: numb
       {items.map(({ mineral, count }) => (
         <li key={mineral.id}>
           <Link href={`/catalog?mineral=${mineral.slug}`} className="group block">
-            <div className="relative aspect-square overflow-hidden rounded-full bg-surface-strong">
+            {/* кольцо появляется при наведении: круги перестают быть серыми пятнами */}
+            <div className="relative aspect-square overflow-hidden rounded-full bg-surface-strong ring-2 ring-brand-soft transition-[box-shadow] duration-[var(--dur)] group-hover:ring-brand-bright">
               {mineral.image ? (
                 <Image
                   src={mineral.image.url}

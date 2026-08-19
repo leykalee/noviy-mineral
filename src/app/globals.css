@@ -15,6 +15,14 @@
   --brand-soft-hover: #d6ebeb;
   --brand-bright: #2ab8c6; /* яркий бирюзовый — заливка кристалла в логотипе */
 
+  /* Тёплый акцент. Снят пиксельным анализом фотографии кальцита из каталога
+     (#c35d03, 674 px) — «дополнительные природные цвета берём из фотографий
+     камней» (п.5 ТЗ). Работает в паре с бирюзовым, не заменяет его. */
+  --accent: #b35405; /* текст и кнопки: контраст с белым 5.0:1 */
+  --accent-bright: #c35d03; /* исходный цвет минерала: заливки и графика */
+  --accent-hover: #9a4a08;
+  --accent-soft: #fdf1e4;
+
   /* Поверхности и текст */
   --background: #ffffff;
   --surface: #f5f8f8; /* секции, чередующие белый фон */
@@ -62,6 +70,11 @@
   --color-brand-soft: var(--brand-soft);
   --color-brand-soft-hover: var(--brand-soft-hover);
   --color-brand-bright: var(--brand-bright);
+
+  --color-accent: var(--accent);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
 
   --color-background: var(--background);
   --color-surface: var(--surface);

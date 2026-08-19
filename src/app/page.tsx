@@ -2,6 +2,7 @@ import { ProductCard } from '@/components/catalog/ProductCard';
 import { CategoryTiles } from '@/components/home/CategoryTiles';
 import { Editorial } from '@/components/home/Editorial';
 import { Hero } from '@/components/home/Hero';
+import { LeadForm } from '@/components/home/LeadForm';
 import { MineralTiles } from '@/components/home/MineralTiles';
 import { ScenarioLinks } from '@/components/home/ScenarioLinks';
 import { SectionHeader } from '@/components/home/SectionHeader';
@@ -46,6 +47,10 @@ export default async function HomePage() {
         .map(async (mineral) => ({ mineral, count: await countProductsByMineral(mineral.slug) })),
     )
   ).filter((item) => item.count > 0);
+
+  // в editorial и в форме показываем разные экземпляры, иначе фото дублируется
+  const editorialProduct = featured.find((p) => p.uniquePiece);
+  const leadProduct = featured.find((p) => p.uniquePiece && p.id !== editorialProduct?.id);
 
   return (
     <>
@@ -92,8 +97,10 @@ export default async function HomePage() {
       )}
 
       <div className="pt-16 lg:pt-24">
-        <Editorial product={featured.find((p) => p.uniquePiece)} />
+        <Editorial product={editorialProduct} />
       </div>
+
+      <LeadForm product={leadProduct} />
     </>
   );
 }
