@@ -18,9 +18,14 @@ export const channelLabels: Record<ContactChannel, string> = {
 };
 
 export const leadSchema = z.object({
-  phone: z.string().trim().regex(phonePattern, 'Проверьте номер телефона'),
+  // сообщение задано и для отсутствующего поля — иначе Zod отдаёт
+  // техническую строку на английском
+  phone: z
+    .string({ message: 'Укажите номер телефона' })
+    .trim()
+    .regex(phonePattern, 'Проверьте номер телефона'),
   channel: z.enum(CONTACT_CHANNELS, { message: 'Выберите, как с вами связаться' }),
-  comment: z.string().trim().max(600, 'Слишком длинный текст').optional(),
+  comment: z.string({ message: 'Слишком длинный текст' }).trim().max(600, 'Слишком длинный текст').optional(),
   consent: z.literal(true, { message: 'Нужно согласие на обработку данных' }),
 });
 
