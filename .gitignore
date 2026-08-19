@@ -8,3 +8,7 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# токены доступа — только локально, никогда в репозиторий
+.vk-token
+*.token
