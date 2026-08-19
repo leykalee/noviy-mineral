@@ -114,7 +114,10 @@ function reducer(state: StoreState, action: Action): StoreState {
     case 'favorites/remove':
       return { ...state, favorites: state.favorites.filter((f) => f.productId !== action.productId) };
 
-    case 'viewed/push':
+    case 'viewed/push': {
+      // товар уже во главе истории — новое состояние создавать нельзя,
+      // иначе контекст пересоздаётся и эффект просмотра зацикливается
+      if (state.recentlyViewed[0] === action.productId) return state;
       return {
         ...state,
         recentlyViewed: [
@@ -122,6 +125,7 @@ function reducer(state: StoreState, action: Action): StoreState {
           ...state.recentlyViewed.filter((id) => id !== action.productId),
         ].slice(0, 12),
       };
+    }
 
     case 'orders/add':
       return { ...state, orders: [action.order, ...state.orders] };
@@ -260,27 +264,35 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'session/logout', guest });
   }, []);
 
+  const actions = useMemo(
+    () => ({
+      addToCart: (productId: string, quantity = 1, maxQuantity = 99) =>
+        dispatch({ type: 'cart/add' as const, productId, quantity, maxQuantity }),
+      setCartQuantity: (productId: string, quantity: number, maxQuantity: number) =>
+        dispatch({ type: 'cart/set' as const, productId, quantity, maxQuantity }),
+      removeFromCart: (productId: string) => dispatch({ type: 'cart/remove' as const, productId }),
+      clearCart: () => dispatch({ type: 'cart/clear' as const }),
+      toggleFavorite: (productId: string) => dispatch({ type: 'favorites/toggle' as const, productId }),
+      removeFavorite: (productId: string) => dispatch({ type: 'favorites/remove' as const, productId }),
+      pushViewed: (productId: string) => dispatch({ type: 'viewed/push' as const, productId }),
+      addOrder: (order: Order) => dispatch({ type: 'orders/add' as const, order }),
+      setPromoCode: (code: string | null) => dispatch({ type: 'promo/set' as const, code }),
+    }),
+    // dispatch стабилен, поэтому действия создаются один раз за всё время жизни
+    [],
+  );
+
   const value = useMemo<StoreContextValue>(
     () => ({
       ...state,
-      addToCart: (productId, quantity = 1, maxQuantity = 99) =>
-        dispatch({ type: 'cart/add', productId, quantity, maxQuantity }),
-      setCartQuantity: (productId, quantity, maxQuantity) =>
-        dispatch({ type: 'cart/set', productId, quantity, maxQuantity }),
-      removeFromCart: (productId) => dispatch({ type: 'cart/remove', productId }),
-      clearCart: () => dispatch({ type: 'cart/clear' }),
-      toggleFavorite: (productId) => dispatch({ type: 'favorites/toggle', productId }),
-      removeFavorite: (productId) => dispatch({ type: 'favorites/remove', productId }),
-      isFavorite: (productId) => state.favorites.some((f) => f.productId === productId),
-      pushViewed: (productId) => dispatch({ type: 'viewed/push', productId }),
-      addOrder: (order) => dispatch({ type: 'orders/add', order }),
-      setPromoCode: (code) => dispatch({ type: 'promo/set', code }),
+      ...actions,
+      isFavorite: (productId: string) => state.favorites.some((f) => f.productId === productId),
       login,
       logout,
       cartCount: state.cart.reduce((sum, i) => sum + i.quantity, 0),
       favoritesCount: state.favorites.length,
     }),
-    [state, login, logout],
+    [state, actions, login, logout],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
