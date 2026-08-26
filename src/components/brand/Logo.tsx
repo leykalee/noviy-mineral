@@ -50,6 +50,10 @@ export function Logo({ withWordmark = true, size = 'md', className }: LogoProps)
 
       {withWordmark && (
         <span className="leading-[1.05]">
+          {/* верхняя строка — начало девиза магазина «Открой для себя новый минерал» */}
+          <span className="hidden text-[10px] uppercase tracking-[0.16em] text-muted-foreground sm:block">
+            Открой для себя
+          </span>
           <span
             className={cx(
               'block font-semibold tracking-[0.02em] text-foreground',
@@ -57,10 +61,6 @@ export function Logo({ withWordmark = true, size = 'md', className }: LogoProps)
             )}
           >
             Новый Минерал
-          </span>
-          {/* вторая строка съедает ширину шапки на 390 px — показываем с sm */}
-          <span className="hidden text-[11px] uppercase tracking-[0.14em] text-muted-foreground sm:block">
-            минералы и камень
           </span>
         </span>
       )}

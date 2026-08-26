@@ -1,52 +1,29 @@
 import { ProductCard } from '@/components/catalog/ProductCard';
-import { CategoryTiles } from '@/components/home/CategoryTiles';
 import { Editorial } from '@/components/home/Editorial';
 import { Hero } from '@/components/home/Hero';
 import { LeadForm } from '@/components/home/LeadForm';
-import { MineralTiles } from '@/components/home/MineralTiles';
-import { ScenarioLinks } from '@/components/home/ScenarioLinks';
+import { NewsTeaser } from '@/components/home/NewsTeaser';
 import { SectionHeader } from '@/components/home/SectionHeader';
-import { categoryBySlug, minerals } from '@/data/demo/taxonomy';
-import {
-  countProductsByMineral,
-  countProductsInCategory,
-  getFeaturedProducts,
-  getNewArrivals,
-} from '@/lib/repository';
+import { getFeaturedProducts, getNewArrivals } from '@/lib/repository';
+import { fetchNews } from '@/lib/news';
 
 /**
- * Главная (п.11 ТЗ): помогает начать выбор, а не рассказывает о компании.
- * Порядок блоков — Hero → категории → новинки → подбор по сценарию →
- * популярные минералы → editorial.
+ * Главная: помогает начать выбор, а не рассказывает о компании.
+ * Первый экран → новинки → новости → editorial → вопрос магазину.
+ *
+ * Плитки категорий убраны: они дублировали меню «Каталог».
+ * Блок «Что ищете?» заменён анонсом новостей — отчёты с выставок для
+ * коллекционера ценнее, чем ещё один набор ссылок в тот же каталог.
  */
 
 export const revalidate = 300;
 
-const HOME_CATEGORY_SLUGS = ['minerals', 'crafts', 'jewelry', 'books', 'accessories'];
-
 export default async function HomePage() {
-  const [featured, newArrivals] = await Promise.all([getFeaturedProducts(8), getNewArrivals(8)]);
-
-  const categoryTiles = (
-    await Promise.all(
-      HOME_CATEGORY_SLUGS.map(async (slug) => {
-        const category = categoryBySlug.get(slug);
-        if (!category) return null;
-        return { category, count: await countProductsInCategory(slug) };
-      }),
-    )
-  ).filter((item): item is { category: NonNullable<ReturnType<typeof categoryBySlug.get>>; count: number } =>
-    Boolean(item),
-  );
-
-  const popularMinerals = (
-    await Promise.all(
-      minerals
-        .filter((m) => m.isPopular)
-        .slice(0, 6)
-        .map(async (mineral) => ({ mineral, count: await countProductsByMineral(mineral.slug) })),
-    )
-  ).filter((item) => item.count > 0);
+  const [featured, newArrivals, news] = await Promise.all([
+    getFeaturedProducts(8),
+    getNewArrivals(8),
+    fetchNews(3),
+  ]);
 
   // в editorial и в форме показываем разные экземпляры, иначе фото дублируется
   const editorialProduct = featured.find((p) => p.uniquePiece);
@@ -54,12 +31,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero products={featured.slice(0, 3)} />
-
-      <section className="container-page pt-16 lg:pt-24" aria-labelledby="categories-title">
-        <SectionHeader id="categories-title" title="Категории" />
-        <CategoryTiles items={categoryTiles} />
-      </section>
+      <Hero product={featured[0]} />
 
       {newArrivals.length > 0 && (
         <section className="container-page pt-16 lg:pt-24" aria-labelledby="new-title">
@@ -76,25 +48,15 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section className="container-page pt-16 lg:pt-24" aria-labelledby="scenario-title">
+      <section className="container-page pt-16 lg:pt-24" aria-labelledby="news-title">
         <SectionHeader
-          id="scenario-title"
-          title="Что ищете?"
-          description="Быстрый переход в каталог с готовыми фильтрами."
+          id="news-title"
+          title="Новости и выставки"
+          description="Отчёты с выставок, новые поступления и события магазина."
+          action={{ label: 'Все новости', href: '/news' }}
         />
-        <ScenarioLinks />
+        <NewsTeaser posts={news.posts} connected={news.connected} />
       </section>
-
-      {popularMinerals.length > 0 && (
-        <section className="container-page pt-16 lg:pt-24" aria-labelledby="minerals-title">
-          <SectionHeader
-            id="minerals-title"
-            title="Популярные минералы"
-            action={{ label: 'Весь каталог', href: '/catalog' }}
-          />
-          <MineralTiles items={popularMinerals} />
-        </section>
-      )}
 
       <div className="pt-16 lg:pt-24">
         <Editorial product={editorialProduct} />

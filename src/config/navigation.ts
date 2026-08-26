@@ -26,10 +26,10 @@ export const megaMenu: MegaMenuColumn[] = [
     title: 'Минералы',
     allLink: { label: 'Все минералы', href: '/catalog/minerals' },
     links: [
-      { label: 'Кристаллы', href: '/catalog/crystals' },
-      { label: 'Друзы и щётки', href: '/catalog/druzes' },
-      { label: 'Полированные камни', href: '/catalog/polished' },
-      { label: 'Галтовка', href: '/catalog/tumbled' },
+      { label: 'Коллекционные образцы в боксах', href: '/catalog/boxes' },
+      { label: 'До 1000 рублей', href: '/catalog/minerals?priceTo=1000' },
+      { label: 'Светится в УФ', href: '/catalog/minerals?feature=uv' },
+      { label: 'Редкости', href: '/catalog/rarities' },
       { label: 'Окаменелости', href: '/catalog/fossils' },
     ],
   },
@@ -37,8 +37,9 @@ export const megaMenu: MegaMenuColumn[] = [
     title: 'Изделия',
     allLink: { label: 'Все изделия', href: '/catalog/crafts' },
     links: [
-      { label: 'Шары и яйца', href: '/catalog/spheres' },
       { label: 'Декор', href: '/catalog/decor' },
+      { label: 'Галтовка', href: '/catalog/tumbled' },
+      { label: 'Полировка', href: '/catalog/polished' },
     ],
   },
   {
@@ -46,8 +47,7 @@ export const megaMenu: MegaMenuColumn[] = [
     allLink: { label: 'Все украшения', href: '/catalog/jewelry' },
     links: [
       { label: 'Браслеты', href: '/catalog/bracelets' },
-      { label: 'Кулоны', href: '/catalog/pendants' },
-      { label: 'Серьги', href: '/catalog/earrings' },
+      { label: 'Бусы', href: '/catalog/beads' },
     ],
   },
   {
@@ -56,7 +56,6 @@ export const megaMenu: MegaMenuColumn[] = [
     links: [
       { label: 'По минералам', href: '/catalog?sort=name', hint: 'Аметист, флюорит, пирит и другие' },
       { label: 'По месторождениям', href: '/catalog?country=Россия', hint: 'Дальнегорск, Урал, Хибины' },
-      { label: 'Свечение в УФ', href: '/catalog?feature=uv' },
       { label: 'Новые поступления', href: '/new' },
     ],
   },
@@ -64,9 +63,9 @@ export const megaMenu: MegaMenuColumn[] = [
     title: 'Другое',
     allLink: { label: 'Весь каталог', href: '/catalog' },
     links: [
-      { label: 'Книги', href: '/catalog/books' },
+      { label: 'Книги и журналы', href: '/catalog/books' },
       { label: 'Сопутствующие товары', href: '/catalog/accessories' },
-      { label: 'Акции', href: '/sale' },
+      { label: 'Пластиковые модели', href: '/catalog/models' },
     ],
   },
 ];
@@ -75,19 +74,10 @@ export const megaMenu: MegaMenuColumn[] = [
 export const primaryNav: NavLink[] = [
   { label: 'Новинки', href: '/new' },
   { label: 'Акции', href: '/sale' },
+  { label: 'Новости', href: '/news' },
   { label: 'О магазине', href: '/about' },
   { label: 'Доставка и оплата', href: '/delivery' },
   { label: 'Контакты', href: '/contacts' },
-];
-
-/** Подборки для новичка — блок «Что ищете?» на главной (п.14 ТЗ) */
-export const scenarioLinks: NavLink[] = [
-  { label: 'Для коллекции', href: '/catalog/minerals?inStock=1' },
-  { label: 'В подарок', href: '/catalog?priceTo=5000&inStock=1' },
-  { label: 'Для интерьера', href: '/catalog/crafts?inStock=1' },
-  { label: 'До 1 500 ₽', href: '/catalog?priceTo=1500&inStock=1' },
-  { label: 'До 3 000 ₽', href: '/catalog?priceTo=3000&inStock=1' },
-  { label: 'Светятся в УФ', href: '/catalog?feature=uv' },
 ];
 
 /** Разделы личного кабинета */
@@ -101,10 +91,10 @@ export const footerNav: { title: string; links: NavLink[] }[] = [
   {
     title: 'Каталог',
     links: [
-      { label: 'Коллекционные минералы', href: '/catalog/minerals' },
-      { label: 'Изделия из камня', href: '/catalog/crafts' },
+      { label: 'Минералы', href: '/catalog/minerals' },
+      { label: 'Изделия', href: '/catalog/crafts' },
       { label: 'Украшения', href: '/catalog/jewelry' },
-      { label: 'Книги', href: '/catalog/books' },
+      { label: 'Книги и журналы', href: '/catalog/books' },
       { label: 'Сопутствующие товары', href: '/catalog/accessories' },
     ],
   },
@@ -114,6 +104,7 @@ export const footerNav: { title: string; links: NavLink[] }[] = [
       { label: 'Доставка и оплата', href: '/delivery' },
       { label: 'Новые поступления', href: '/new' },
       { label: 'Акции', href: '/sale' },
+      { label: 'Новости', href: '/news' },
       { label: 'Избранное', href: '/favorites' },
       { label: 'Корзина', href: '/cart' },
     ],

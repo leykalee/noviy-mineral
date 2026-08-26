@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { channelLabels, leadSchema } from '@/lib/lead-schema';
+import { leadSchema } from '@/lib/lead-schema';
 import { fieldErrors } from '@/lib/order-schema';
 import { getEmailProvider } from '@/services';
 
 /**
- * Приём заявки на подбор.
+ * Вопрос магазину из формы обратной связи.
  *
- * Пока почтовый провайдер не настроен, заявка попадает только в лог сервера —
- * и ответ честно сообщает об этом (`delivered: false`), чтобы интерфейс не
- * обещал покупателю связь, которой не будет.
+ * Письмо уходит на почту магазина через тот же провайдер, что и уведомления
+ * о заказах. Пока почтовый сервис не настроен, обращение попадает только
+ * в лог сервера — и ответ честно сообщает об этом (`delivered: false`),
+ * чтобы интерфейс не обещал покупателю ответ, которого не будет.
  */
 export async function POST(request: Request) {
   let payload: unknown;
@@ -23,16 +24,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ errors: fieldErrors(parsed.error) }, { status: 422 });
   }
 
-  const { phone, channel, comment } = parsed.data;
+  const { name, email, question } = parsed.data;
   const emailProvider = getEmailProvider();
 
-  console.info(
-    `[lead] заявка: ${phone}, способ связи — ${channelLabels[channel]}${comment ? `, комментарий: ${comment}` : ''}`,
-  );
+  console.info(`[lead] вопрос от ${name} <${email}>: ${question.slice(0, 300)}`);
 
   return NextResponse.json({
     ok: true,
-    // false → магазин ещё не подключил почту, заявка нигде не сохранена
+    // false → почта магазина ещё не подключена, обращение никуда не отправлено
     delivered: emailProvider.isLive,
   });
 }
