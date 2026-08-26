@@ -4,12 +4,14 @@ import type {
   CatalogFacets,
   CatalogQuery,
   CatalogResult,
+  Category,
   FacetValue,
   Product,
   ProductFeature,
   SortKey,
 } from '@/types';
 import {
+  categories,
   categoryBranchIds,
   categoryBySlug,
   colorById,
@@ -300,6 +302,59 @@ export async function countProductsByMineral(mineralSlug: string): Promise<numbe
   const mineral = mineralBySlug.get(mineralSlug);
   if (!mineral) return 0;
   return products.filter((p) => p.mineralId === mineral.id).length;
+}
+
+/**
+ * Слайды первого экрана — разделы каталога верхнего уровня.
+ *
+ * Первый экран сам работает навигацией по каталогу, поэтому отдельного
+ * блока с плитками разделов на главной нет: он бы повторял слайдер.
+ * Раздел без фотографии пропускаем — слайд держится на снимке.
+ */
+export interface HeroSlide {
+  slug: string;
+  /** Короткая подпись для крупного набора на слайде */
+  title: string;
+  /** Полное название раздела — для подписи точки переключения */
+  name: string;
+  image: NonNullable<Category['image']>;
+  /** Сколько экземпляров в ветке раздела */
+  count: number;
+}
+
+/**
+ * Полные названия разделов набраны прописными в 78 px и занимают две-три
+ * строки — крупный заголовок перестаёт читаться с одного взгляда. На слайде
+ * ставим короткое слово, полное название остаётся в меню и в каталоге.
+ */
+const HERO_TITLES: Record<string, string> = {
+  minerals: 'Минералы',
+  crafts: 'Изделия',
+  jewelry: 'Украшения',
+  books: 'Книги',
+  accessories: 'Сопутствующие',
+};
+
+export async function getHeroSlides(): Promise<HeroSlide[]> {
+  return categories
+    .filter((c) => !c.parentId)
+    .sort((a, b) => a.order - b.order)
+    .flatMap((category) => {
+      const image = category.image;
+      if (!image) return [];
+      const ids = new Set(categoryBranchIds(category.id));
+      const count = products.filter((p) => ids.has(p.categoryId)).length;
+      if (count === 0) return [];
+      return [
+        {
+          slug: category.slug,
+          title: HERO_TITLES[category.slug] ?? category.name,
+          name: category.name,
+          image,
+          count,
+        },
+      ];
+    });
 }
 
 export type { ProductFeature };
