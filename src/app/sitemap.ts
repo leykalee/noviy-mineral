@@ -2,7 +2,9 @@ import type { MetadataRoute } from 'next';
 import { listProductsPage } from '@/lib/admik';
 import { fetchCategories } from '@/lib/taxonomy-remote';
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+import { siteUrl } from '@/lib/site-url';
+
+const BASE = siteUrl;
 
 // Каталог из Admik — карта сайта собирается динамически.
 export const dynamic = 'force-dynamic';

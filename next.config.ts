@@ -1,6 +1,17 @@
 import type { NextConfig } from 'next';
 
 /**
+ * Заголовки безопасности живут здесь, а не в конфиге хостинга: так они
+ * едут вместе с проектом и не теряются при смене площадки.
+ */
+const securityHeaders = [
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+];
+
+/**
  * Хост медиа Admik для next/image. Фото товаров отдаются с публичного адреса
  * Admik (S3_PUBLIC_URL → Caddy → MinIO), поэтому его нужно разрешить в
  * remotePatterns. Берём из NEXT_PUBLIC_ADMIK_API_URL (адрес API/медиа Admik).
@@ -33,6 +44,9 @@ const nextConfig: NextConfig = {
     remotePatterns: admikImagePatterns(),
   },
   typedRoutes: false,
+  async headers() {
+    return [{ source: '/:path*', headers: securityHeaders }];
+  },
 };
 
 export default nextConfig;

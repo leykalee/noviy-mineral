@@ -1,26 +1,27 @@
 import { ProductCard } from '@/components/catalog/ProductCard';
+import { Icon } from '@/components/common/Icon';
 import { Editorial } from '@/components/home/Editorial';
-import { Hero } from '@/components/home/Hero';
+import { HeroSlider } from '@/components/home/HeroSlider';
 import { LeadForm } from '@/components/home/LeadForm';
 import { NewsTeaser } from '@/components/home/NewsTeaser';
 import { SectionHeader } from '@/components/home/SectionHeader';
-import { getFeaturedProducts, getNewArrivals } from '@/lib/repository';
+import { getFeaturedProducts, getHeroSlides, getNewArrivals } from '@/lib/repository';
 import { fetchNews } from '@/lib/news';
 
 /**
- * Главная: помогает начать выбор, а не рассказывает о компании.
- * Первый экран → новинки → новости → editorial → вопрос магазину.
+ * Главная. Первый экран оформлен по образцу rusmineral.ru — сайта, на который
+ * ориентируется заказчик: тёмная карусель разделов во всю ширину, крупный
+ * снимок и заголовок раздела прописными.
  *
- * Плитки категорий убраны: они дублировали меню «Каталог».
- * Блок «Что ищете?» заменён анонсом новостей — отчёты с выставок для
- * коллекционера ценнее, чем ещё один набор ссылок в тот же каталог.
+ * Плитки разделов отдельным блоком не нужны: карусель уже ведёт в каталог.
  */
 
 // Данные каталога — из Admik в рантайме (headless-потребитель).
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [featured, newArrivals, news] = await Promise.all([
+  const [slides, featured, newArrivals, news] = await Promise.all([
+    getHeroSlides(),
     getFeaturedProducts(8),
     getNewArrivals(8),
     fetchNews(3),
@@ -32,14 +33,33 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero product={featured[0]} />
+      <HeroSlider slides={slides} />
+
+      {/* Заголовок страницы вынесен под карусель: на слайдах стоят названия
+          разделов, а поисковику и скринридеру нужен один H1 про сам магазин. */}
+      <section className="container-page pt-10 lg:pt-14" aria-labelledby="hero-title">
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+          <h1
+            id="hero-title"
+            className="max-w-[22ch] text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[38px] lg:text-[44px]"
+          >
+            Коллекционные минералы и изделия из натурального камня
+          </h1>
+          <p className="inline-flex items-center gap-2 rounded-[var(--radius-xs)] bg-brand-soft px-3 py-1.5 text-[13px] font-medium text-brand">
+            <Icon name="sparkle" size={15} />
+            Каждый образец продаётся отдельным экземпляром
+          </p>
+        </div>
+      </section>
 
       {newArrivals.length > 0 && (
-        <section className="container-page pt-16 lg:pt-24" aria-labelledby="new-title">
+        <section className="container-page pt-14 lg:pt-20" aria-labelledby="new-title">
           <SectionHeader
             id="new-title"
-            title="Новые поступления"
-            action={{ label: 'Все новинки', href: '/new' }}
+            title="Новинки"
+            description="Свежие поступления с выставок и от поставщиков. Коллекционные образцы приходят
+              поштучно, поэтому редкие экземпляры разбирают в первые дни."
+            action={{ label: 'Перейти к новинкам', href: '/new' }}
           />
           <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
             {newArrivals.map((product, index) => (
