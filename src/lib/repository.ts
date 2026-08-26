@@ -220,7 +220,7 @@ export async function getSaleProducts(limit?: number): Promise<Product[]> {
   const all = await loadAllProducts();
   const items = all
     .filter((p) => p.oldPrice && p.oldPrice > p.price)
-    .sort((a, b) => b.popularity - a.popularity);
+    .sort((a, b) => b.popularity - a.popularity || a.slug.localeCompare(b.slug));
   return limit ? items.slice(0, limit) : items;
 }
 
@@ -252,7 +252,12 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
 
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
   const all = await loadAllProducts();
-  return all.filter((p) => p.isFeatured).sort((a, b) => b.popularity - a.popularity).slice(0, limit);
+  // Стабильный порядок: у демо-товаров совпадают даты, поэтому без вторичного
+  // ключа сортировка «плавала» и блоки главной подставляли разные товары.
+  return all
+    .filter((p) => p.isFeatured)
+    .sort((a, b) => b.popularity - a.popularity || a.slug.localeCompare(b.slug))
+    .slice(0, limit);
 }
 
 export async function countProductsInCategory(categorySlug: string): Promise<number> {
