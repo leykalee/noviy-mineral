@@ -7,13 +7,15 @@ import {
   parseCatalogQuery,
   type SearchParamsInput,
 } from '@/lib/catalog-query';
-import { categories, categoryBySlug, categoryPath, childCategories } from '@/data/demo/taxonomy';
 import { countProductsInCategory, queryProducts } from '@/lib/repository';
+import {
+  fetchCategoryBySlug,
+  fetchCategoryPath,
+  fetchChildCategories,
+} from '@/lib/taxonomy-remote';
 
-/** Все категории известны заранее — страницы можно отрендерить статически */
-export function generateStaticParams() {
-  return categories.map((c) => ({ category: c.slug }));
-}
+// Категории приходят из Admik в рантайме — страница динамическая.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,
@@ -23,7 +25,7 @@ export async function generateMetadata({
   searchParams: Promise<SearchParamsInput>;
 }): Promise<Metadata> {
   const { category: slug } = await params;
-  const category = categoryBySlug.get(slug);
+  const category = await fetchCategoryBySlug(slug);
   if (!category) return { title: 'Категория не найдена' };
 
   const query = parseCatalogQuery(await searchParams);
@@ -45,7 +47,7 @@ export default async function CategoryPage({
   searchParams: Promise<SearchParamsInput>;
 }) {
   const { category: slug } = await params;
-  const category = categoryBySlug.get(slug);
+  const category = await fetchCategoryBySlug(slug);
   if (!category) notFound();
 
   const rawParams = await searchParams;
@@ -65,18 +67,20 @@ async function CategoryContent({
   slug: string;
   query: ReturnType<typeof parseCatalogQuery>;
 }) {
-  const category = categoryBySlug.get(slug)!;
-  const children = childCategories(category.id);
-
-  const [result, childCounts] = await Promise.all([
+  const [category, children, trail, result] = await Promise.all([
+    fetchCategoryBySlug(slug),
+    fetchChildCategories(slug),
+    fetchCategoryPath(slug),
     queryProducts(query, { categorySlug: slug }),
-    Promise.all(children.map((c) => countProductsInCategory(c.slug))),
   ]);
+  if (!category) notFound();
+
+  const childCounts = await Promise.all(children.map((c) => countProductsInCategory(c.slug)));
 
   const crumbs = [
     { label: 'Главная', href: '/' },
     { label: 'Каталог', href: '/catalog' },
-    ...categoryPath(category.id).map((c, index, all) => ({
+    ...trail.map((c, index, all) => ({
       label: c.name,
       href: index === all.length - 1 ? undefined : `/catalog/${c.slug}`,
     })),

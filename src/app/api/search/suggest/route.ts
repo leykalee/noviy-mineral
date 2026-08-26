@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
-import { minerals, deposits, categories } from '@/data/demo/taxonomy';
 import { queryProducts } from '@/lib/repository';
+import { fetchCategories } from '@/lib/taxonomy-remote';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * Подсказки для панели поиска (п.30 ТЗ).
  *
- * Возвращает три группы: минеральные виды, товары и «возможно» —
- * месторождения и категории. Поиск понимает название, артикул, минерал,
- * месторождение, регион и категорию.
+ * Источник — Storefront API Admik: товары (поиск по названию/артикулу на бэкенде)
+ * и категории (дерево /categories). Подсказки по минеральным видам и
+ * месторождениям — ЭТАП 2 (в каноне Admik таких сущностей нет).
  */
 
 function normalize(value: string): string {
@@ -24,34 +26,18 @@ export async function GET(request: Request) {
 
   const needle = normalize(q);
 
-  const mineralHits = minerals
-    .filter((m) => normalize(m.name).includes(needle))
-    .slice(0, 5)
-    .map((m) => ({ slug: m.slug, name: m.name }));
-
-  const depositHits = deposits
-    .filter(
-      (d) =>
-        normalize(d.name).includes(needle) ||
-        normalize(d.country).includes(needle) ||
-        (d.region ? normalize(d.region).includes(needle) : false),
-    )
-    .slice(0, 3)
-    .map((d) => ({
-      label: d.name,
-      hint: [d.country, d.region].filter(Boolean).join(', '),
-      href: `/catalog?deposit=${encodeURIComponent(d.slug)}`,
-    }));
+  const [{ items, total }, categories] = await Promise.all([
+    queryProducts({ q, perPage: 6, sort: 'popular' }),
+    fetchCategories().catch(() => []),
+  ]);
 
   const categoryHits = categories
     .filter((c) => normalize(c.name).includes(needle))
     .slice(0, 3)
     .map((c) => ({ label: c.name, hint: 'Категория', href: `/catalog/${c.slug}` }));
 
-  const { items, total } = await queryProducts({ q, perPage: 6, sort: 'popular' });
-
   return NextResponse.json({
-    minerals: mineralHits,
+    minerals: [],
     products: items.map((p) => ({
       slug: p.slug,
       name: p.name,
@@ -60,7 +46,7 @@ export async function GET(request: Request) {
       image: p.images[0]?.url ?? null,
       origin: [p.region, p.country].filter(Boolean).join(', ') || null,
     })),
-    other: [...depositHits, ...categoryHits],
+    other: categoryHits,
     total,
   });
 }

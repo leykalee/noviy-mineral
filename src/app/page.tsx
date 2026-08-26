@@ -16,7 +16,8 @@ import { fetchNews } from '@/lib/news';
  * коллекционера ценнее, чем ещё один набор ссылок в тот же каталог.
  */
 
-export const revalidate = 300;
+// Данные каталога — из Admik в рантайме (headless-потребитель).
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const [featured, newArrivals, news] = await Promise.all([
