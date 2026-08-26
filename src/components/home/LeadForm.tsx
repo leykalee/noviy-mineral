@@ -5,24 +5,26 @@ import Link from 'next/link';
 import { useState } from 'react';
 import type { Product } from '@/types';
 import { Icon } from '@/components/common/Icon';
-import { CONTACT_CHANNELS, channelLabels, leadSchema, type ContactChannel } from '@/lib/lead-schema';
+import { storeConfig } from '@/config/store';
+import { leadSchema } from '@/lib/lead-schema';
 import { fieldErrors } from '@/lib/order-schema';
 import { cx } from '@/lib/cx';
 
 /**
- * Заявка на подбор экземпляра.
+ * Вопрос магазину.
  *
- * Каталог большой, а коллекционный образец покупают глазами — поэтому магазину
- * важно уметь подобрать экземпляр вручную. Форма спрашивает минимум: телефон
- * и удобный способ связи.
+ * Каталог большой, а коллекционный образец покупают глазами — магазину важно
+ * уметь ответить вручную. Телефон не спрашиваем: человеку проще написать
+ * вопрос и оставить почту для ответа.
  *
  * Ничего не обещаем сверх реального: пока почта магазина не подключена,
- * подтверждение честно говорит, что заявка сохранена только в журнале сервера.
+ * подтверждение честно говорит, что обращение сохранено только в журнале
+ * сервера, и предлагает написать в сообщество.
  */
 export function LeadForm({ product }: { product?: Product }) {
-  const [phone, setPhone] = useState('');
-  const [channel, setChannel] = useState<ContactChannel | ''>('');
-  const [comment, setComment] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [question, setQuestion] = useState('');
   const [consent, setConsent] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -34,12 +36,7 @@ export function LeadForm({ product }: { product?: Product }) {
     event.preventDefault();
     setFailed(null);
 
-    const parsed = leadSchema.safeParse({
-      phone,
-      channel: channel || undefined,
-      comment: comment || undefined,
-      consent,
-    });
+    const parsed = leadSchema.safeParse({ name, email, question, consent });
     if (!parsed.success) {
       setErrors(fieldErrors(parsed.error));
       return;
@@ -56,7 +53,7 @@ export function LeadForm({ product }: { product?: Product }) {
       const json = await response.json();
       if (!response.ok) {
         if (json.errors) setErrors(json.errors);
-        else setFailed(json.error ?? 'Не удалось отправить заявку. Попробуйте ещё раз.');
+        else setFailed(json.error ?? 'Не удалось отправить вопрос. Попробуйте ещё раз.');
         return;
       }
       setSent({ delivered: Boolean(json.delivered) });
@@ -67,12 +64,17 @@ export function LeadForm({ product }: { product?: Product }) {
     }
   };
 
+  const inputClass = (invalid: boolean) =>
+    cx(
+      'h-13 w-full rounded-[var(--radius-sm)] border bg-white px-4 text-[16px] outline-none transition-colors duration-[var(--dur-fast)]',
+      invalid ? 'border-danger' : 'border-border-strong focus:border-brand',
+    );
+
   return (
     <section aria-labelledby="lead-title" className="bg-surface">
       <div className="container-page py-14 lg:py-20">
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-16">
           <div>
-            {/* акцентная плашка задаёт тон блоку */}
             <p className="mb-4 inline-flex items-center gap-2 rounded-[var(--radius-xs)] bg-accent-soft px-3 py-1.5 text-[13px] font-medium text-accent">
               <Icon name="sparkle" size={15} />
               Подбор вручную
@@ -86,114 +88,115 @@ export function LeadForm({ product }: { product?: Product }) {
             </h2>
 
             <p className="mt-4 max-w-[46ch] text-[17px] leading-relaxed text-muted-foreground">
-              Ищете конкретный минерал, размер или образец в подарок? Оставьте телефон — вернёмся
-              с подборкой из наличия.
+              Ищете конкретный минерал, размер или образец в подарок? Напишите, что нужно, —
+              ответим и подберём из наличия.
             </p>
 
             {sent ? (
               <div className="mt-8 rounded-[var(--radius-md)] border border-border bg-white p-6">
                 <p className="flex items-center gap-2.5 text-[17px] font-semibold text-success">
                   <Icon name="check" size={22} />
-                  Заявка принята
+                  Вопрос отправлен
                 </p>
                 <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
                   {sent.delivered
-                    ? 'Мы свяжемся с вами удобным способом.'
-                    : 'Приём заявок работает в тестовом режиме: почта магазина ещё не подключена, поэтому заявка сохранена только в журнале сервера и никуда не отправлена.'}
+                    ? 'Ответим на указанную почту.'
+                    : 'Форма работает в тестовом режиме: почта магазина ещё не подключена, поэтому обращение сохранено только в журнале сервера. Чтобы вопрос дошёл наверняка, напишите в сообщество.'}
                 </p>
                 <button
                   type="button"
                   onClick={() => {
                     setSent(null);
-                    setPhone('');
-                    setChannel('');
-                    setComment('');
+                    setQuestion('');
                     setConsent(false);
                   }}
                   className="mt-4 text-[15px] font-medium text-brand hover:underline"
                 >
-                  Отправить ещё одну
+                  Задать ещё один вопрос
                 </button>
               </div>
             ) : (
-              <form onSubmit={submit} noValidate className="mt-8 max-w-[460px]">
-                <label htmlFor="lead-phone" className="mb-1.5 block text-[14px] font-medium">
-                  Телефон
+              <form onSubmit={submit} noValidate className="mt-8 max-w-[520px]">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="lead-name" className="mb-1.5 block text-[14px] font-medium">
+                      Имя
+                      <span className="text-danger" aria-hidden="true">
+                        {' '}
+                        *
+                      </span>
+                    </label>
+                    <input
+                      id="lead-name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      autoComplete="name"
+                      aria-invalid={Boolean(errors.name)}
+                      className={inputClass(Boolean(errors.name))}
+                    />
+                    {errors.name && (
+                      <p role="alert" className="mt-1.5 text-[13px] text-danger">
+                        {errors.name}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="lead-email" className="mb-1.5 block text-[14px] font-medium">
+                      Почта для ответа
+                      <span className="text-danger" aria-hidden="true">
+                        {' '}
+                        *
+                      </span>
+                    </label>
+                    <input
+                      id="lead-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
+                      aria-invalid={Boolean(errors.email)}
+                      className={inputClass(Boolean(errors.email))}
+                    />
+                    {errors.email && (
+                      <p role="alert" className="mt-1.5 text-[13px] text-danger">
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <label htmlFor="lead-question" className="mb-1.5 mt-4 block text-[14px] font-medium">
+                  Вопрос
                   <span className="text-danger" aria-hidden="true">
                     {' '}
                     *
                   </span>
                 </label>
-                <input
-                  id="lead-phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  autoComplete="tel"
-                  placeholder="+7 900 000-00-00"
-                  aria-invalid={Boolean(errors.phone)}
-                  aria-describedby={errors.phone ? 'lead-phone-error' : undefined}
+                <textarea
+                  id="lead-question"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  rows={4}
+                  placeholder="Например: ищу флюорит с Дальнегорска до 5 000 ₽, размер от 60 мм"
+                  aria-invalid={Boolean(errors.question)}
                   className={cx(
-                    'h-13 w-full rounded-[var(--radius-sm)] border bg-white px-4 text-[16px] outline-none transition-colors duration-[var(--dur-fast)]',
-                    errors.phone ? 'border-danger' : 'border-border-strong focus:border-brand',
+                    'w-full rounded-[var(--radius-sm)] border bg-white px-4 py-3 text-[16px] leading-relaxed outline-none transition-colors duration-[var(--dur-fast)]',
+                    errors.question ? 'border-danger' : 'border-border-strong focus:border-brand',
                   )}
                 />
-                {errors.phone && (
-                  <p id="lead-phone-error" role="alert" className="mt-1.5 text-[13px] text-danger">
-                    {errors.phone}
+                {errors.question && (
+                  <p role="alert" className="mt-1.5 text-[13px] text-danger">
+                    {errors.question}
                   </p>
                 )}
-
-                <fieldset className="mt-5">
-                  <legend className="mb-2 text-[14px] font-medium">Как с вами связаться?</legend>
-                  <div className="flex flex-wrap gap-2">
-                    {CONTACT_CHANNELS.map((value) => (
-                      <label
-                        key={value}
-                        className={cx(
-                          'inline-flex h-11 cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] border px-4 text-[15px] transition-colors duration-[var(--dur-fast)]',
-                          channel === value
-                            ? 'border-brand bg-brand-soft font-medium text-brand'
-                            : 'border-border-strong bg-white hover:border-brand',
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          name="channel"
-                          value={value}
-                          checked={channel === value}
-                          onChange={() => setChannel(value)}
-                          className="size-4 accent-[var(--brand)]"
-                        />
-                        {channelLabels[value]}
-                      </label>
-                    ))}
-                  </div>
-                  {errors.channel && (
-                    <p role="alert" className="mt-1.5 text-[13px] text-danger">
-                      {errors.channel}
-                    </p>
-                  )}
-                </fieldset>
-
-                <label htmlFor="lead-comment" className="mb-1.5 mt-5 block text-[14px] font-medium">
-                  Что ищете
-                </label>
-                <textarea
-                  id="lead-comment"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  rows={2}
-                  placeholder="Например: флюорит с Дальнегорска до 5 000 ₽"
-                  className="w-full rounded-[var(--radius-sm)] border border-border-strong bg-white px-4 py-3 text-[16px] leading-relaxed outline-none transition-colors duration-[var(--dur-fast)] focus:border-brand"
-                />
 
                 <button
                   type="submit"
                   disabled={sending}
                   className="mt-5 h-13 w-full rounded-[var(--radius-sm)] bg-accent px-7 text-[16px] font-medium text-white transition-colors duration-[var(--dur-fast)] hover:bg-accent-hover disabled:opacity-45 sm:w-auto"
                 >
-                  {sending ? 'Отправляем…' : 'Отправить заявку'}
+                  {sending ? 'Отправляем…' : 'Отправить вопрос'}
                 </button>
 
                 <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-[13px] leading-relaxed text-muted-foreground">
@@ -224,6 +227,22 @@ export function LeadForm({ product }: { product?: Product }) {
                   </p>
                 )}
               </form>
+            )}
+
+            {/* второй канал связи: не всем удобно писать почтой */}
+            {storeConfig.social.vk && (
+              <p className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-muted-foreground">
+                Удобнее в мессенджере?
+                <a
+                  href={storeConfig.social.vk}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline"
+                >
+                  Написать в сообщество ВКонтакте
+                  <Icon name="external" size={16} />
+                </a>
+              </p>
             )}
           </div>
 

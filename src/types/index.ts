@@ -57,6 +57,10 @@ export interface Product {
 
   mineralId?: string;
   depositId?: string;
+  /** Отображаемое имя минерального вида (из атрибутов Admik; справочника нет) */
+  mineralName?: string;
+  /** Отображаемое имя месторождения (из атрибутов Admik) */
+  depositName?: string;
 
   country?: string;
   region?: string;

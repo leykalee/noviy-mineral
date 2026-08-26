@@ -5,7 +5,6 @@ import { FavoriteButton } from '@/components/common/FavoriteButton';
 import { StatusBadge, Tag } from '@/components/common/StatusBadge';
 import { QuickAddButton } from '@/components/catalog/QuickAddButton';
 import { discountPercent, formatPrice } from '@/lib/format';
-import { mineralById } from '@/data/demo/taxonomy';
 import { cx } from '@/lib/cx';
 
 /**
@@ -25,9 +24,8 @@ export function ProductCard({
   priority?: boolean;
   sizes?: string;
 }) {
-  const mineral = product.mineralId ? mineralById.get(product.mineralId) : undefined;
   const origin = [product.region, product.country].filter(Boolean).join(', ');
-  const subtitle = origin || mineral?.name || product.material || null;
+  const subtitle = origin || product.mineralName || product.material || null;
   const discount = discountPercent(product.price, product.oldPrice);
   const unavailable = product.status !== 'available';
   const secondImage = product.images[1];

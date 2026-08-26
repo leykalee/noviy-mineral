@@ -1,31 +1,23 @@
 import { z } from 'zod';
 
 /**
- * Заявка на подбор экземпляра.
+ * Вопрос магазину из формы обратной связи.
  *
- * Одна схема на клиент и сервер: браузеру не доверяем, проверяем повторно.
+ * Телефон не спрашиваем: покупателю проще написать вопрос и оставить почту
+ * для ответа. Одна схема на клиент и сервер — браузеру не доверяем.
  */
 
-const phonePattern = /^\+?[\d\s()-]{10,20}$/;
-
-export const CONTACT_CHANNELS = ['call', 'telegram', 'whatsapp'] as const;
-export type ContactChannel = (typeof CONTACT_CHANNELS)[number];
-
-export const channelLabels: Record<ContactChannel, string> = {
-  call: 'Позвонить',
-  telegram: 'Написать в Telegram',
-  whatsapp: 'Написать в WhatsApp',
-};
-
 export const leadSchema = z.object({
-  // сообщение задано и для отсутствующего поля — иначе Zod отдаёт
-  // техническую строку на английском
-  phone: z
-    .string({ message: 'Укажите номер телефона' })
+  name: z.string({ message: 'Укажите имя' }).trim().min(2, 'Укажите имя'),
+  email: z
+    .string({ message: 'Укажите почту для ответа' })
     .trim()
-    .regex(phonePattern, 'Проверьте номер телефона'),
-  channel: z.enum(CONTACT_CHANNELS, { message: 'Выберите, как с вами связаться' }),
-  comment: z.string({ message: 'Слишком длинный текст' }).trim().max(600, 'Слишком длинный текст').optional(),
+    .email('Проверьте адрес электронной почты'),
+  question: z
+    .string({ message: 'Напишите вопрос' })
+    .trim()
+    .min(5, 'Напишите вопрос подробнее')
+    .max(2000, 'Слишком длинный текст'),
   consent: z.literal(true, { message: 'Нужно согласие на обработку данных' }),
 });
 

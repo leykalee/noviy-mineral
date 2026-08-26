@@ -6,8 +6,10 @@ import {
   parseCatalogQuery,
   type SearchParamsInput,
 } from '@/lib/catalog-query';
-import { categories } from '@/data/demo/taxonomy';
 import { countProductsInCategory, queryProducts } from '@/lib/repository';
+import { fetchRootCategories } from '@/lib/taxonomy-remote';
+
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   searchParams,
@@ -44,7 +46,7 @@ export default async function CatalogPage({
 }
 
 async function CatalogContent({ query }: { query: ReturnType<typeof parseCatalogQuery> }) {
-  const topLevel = categories.filter((c) => !c.parentId).sort((a, b) => a.order - b.order);
+  const topLevel = await fetchRootCategories();
 
   // независимые запросы идут параллельно, а не цепочкой
   const [result, counts] = await Promise.all([

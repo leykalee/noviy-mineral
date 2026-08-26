@@ -11,14 +11,7 @@ import { Gallery } from '@/components/product/Gallery';
 import { RecentlyViewed, TrackView } from '@/components/product/RecentlyViewed';
 import { StickyMobileBar } from '@/components/product/StickyMobileBar';
 import { storeConfig } from '@/config/store';
-import { products } from '@/data/demo/products';
-import {
-  categoryById,
-  categoryPath,
-  depositById,
-  featureLabels,
-  mineralById,
-} from '@/data/demo/taxonomy';
+import { featureLabels } from '@/data/demo/taxonomy';
 import {
   discountPercent,
   formatDimensions,
@@ -26,10 +19,10 @@ import {
   formatWeight,
 } from '@/lib/format';
 import { getProductBySlug, getRelatedProducts } from '@/lib/repository';
+import { fetchCategoryPath } from '@/lib/taxonomy-remote';
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
-}
+// Каталог приходит из Admik в рантайме — страница товара рендерится динамически.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,
@@ -65,11 +58,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const related = await getRelatedProducts(product, 8);
+  const [related, categoryTrail] = await Promise.all([
+    getRelatedProducts(product, 8),
+    product.categoryId ? fetchCategoryPath(product.categoryId) : Promise.resolve([]),
+  ]);
 
-  const mineral = product.mineralId ? mineralById.get(product.mineralId) : undefined;
-  const deposit = product.depositId ? depositById.get(product.depositId) : undefined;
-  const category = categoryById.get(product.categoryId);
+  const category = categoryTrail[categoryTrail.length - 1] ?? null;
   const discount = discountPercent(product.price, product.oldPrice);
   const dimensions = formatDimensions(product.width, product.height, product.depth);
   const weight = formatWeight(product.weight);
@@ -77,10 +71,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   /** Только заполненные строки — «Вес: —» не выводим (п.27 ТЗ) */
   const specs: { label: string; value: string; href?: string }[] = [
     { label: 'Артикул', value: product.sku },
-    mineral ? { label: 'Минерал', value: mineral.name, href: `/catalog?mineral=${mineral.slug}` } : null,
+    product.mineralName
+      ? { label: 'Минерал', value: product.mineralName, href: `/search?q=${encodeURIComponent(product.mineralName)}` }
+      : null,
 
-    deposit
-      ? { label: 'Месторождение', value: deposit.name, href: `/catalog?deposit=${deposit.slug}` }
+    product.depositName
+      ? { label: 'Месторождение', value: product.depositName, href: `/search?q=${encodeURIComponent(product.depositName)}` }
       : null,
     product.country
       ? { label: 'Страна', value: product.country, href: `/catalog?country=${encodeURIComponent(product.country)}` }
@@ -102,9 +98,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const crumbs = [
     { label: 'Главная', href: '/' },
     { label: 'Каталог', href: '/catalog' },
-    ...(category
-      ? categoryPath(category.id).map((c) => ({ label: c.name, href: `/catalog/${c.slug}` }))
-      : []),
+    ...categoryTrail.map((c) => ({ label: c.name, href: `/catalog/${c.slug}` })),
     { label: product.name },
   ];
 
@@ -268,47 +262,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </table>
           </section>
 
-          {mineral?.about && (
-            <section aria-labelledby="mineral-title">
-              <h2 id="mineral-title" className="mb-3 text-[22px] font-semibold">
-                О минерале: {mineral.name}
-              </h2>
-              <p className="max-w-[70ch] text-[16px] leading-relaxed text-muted-foreground">
-                {mineral.about}
-              </p>
-              {mineral.formula && (
-                <p className="mt-2 text-[15px] text-muted-foreground">
-                  Формула: <span className="text-foreground">{mineral.formula}</span>
-                </p>
-              )}
-              <Link
-                href={`/catalog?mineral=${mineral.slug}`}
-                className="mt-3 inline-flex items-center gap-1.5 text-[15px] font-medium text-brand hover:underline"
-              >
-                Все экземпляры этого минерала
-                <Icon name="arrow-right" size={17} />
-              </Link>
-            </section>
-          )}
-
-          {deposit && (
-            <section aria-labelledby="deposit-title">
-              <h2 id="deposit-title" className="mb-3 text-[22px] font-semibold">
-                Месторождение
-              </h2>
-              <p className="text-[16px] text-muted-foreground">
-                {deposit.name}
-                {deposit.region ? `, ${deposit.region}` : ''}, {deposit.country}
-              </p>
-              <Link
-                href={`/catalog?deposit=${deposit.slug}`}
-                className="mt-3 inline-flex items-center gap-1.5 text-[15px] font-medium text-brand hover:underline"
-              >
-                Образцы с этого месторождения
-                <Icon name="arrow-right" size={17} />
-              </Link>
-            </section>
-          )}
         </div>
 
         <aside>
