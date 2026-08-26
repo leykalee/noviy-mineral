@@ -30,7 +30,6 @@ interface StoreConfig {
     giftWithEveryOrder: { enabled: boolean };
   };
   deliveryRulesConfirmed: boolean;
-  promoCodesAreDemo: boolean;
 }
 
 export const storeConfig: StoreConfig = {
@@ -74,8 +73,6 @@ export const storeConfig: StoreConfig = {
 
   /** Реальные правила доставки не переданы — страница /delivery это честно сообщает */
   deliveryRulesConfirmed: false,
-  /** Реальных промокодов заказчик не передавал: коды ниже — демонстрационные */
-  promoCodesAreDemo: true,
 };
 
 /** Есть ли хоть один контакт — от этого зависит, рендерить ли блок контактов */
