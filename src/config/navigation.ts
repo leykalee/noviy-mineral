@@ -118,3 +118,54 @@ export const footerNav: { title: string; links: NavLink[] }[] = [
     ],
   },
 ];
+
+/**
+ * Отбор пунктов меню по реально существующим разделам каталога.
+ *
+ * Структуру меню задаёт заказчик, а разделы заводит владелец в админке.
+ * Пока раздела нет, пункт вёл бы покупателя на страницу 404 — тупик прямо
+ * из шапки. Поэтому такие пункты не показываем: заведут раздел в Admik —
+ * пункт появится сам.
+ *
+ * Пустой список разделов означает, что каталог не ответил. Тогда меню
+ * оставляем как есть: показать пустую шапку хуже, чем показать всё.
+ */
+
+/** slug раздела из ссылки вида /catalog/<slug>?… ; для прочих ссылок — null */
+function catalogSlug(href: string): string | null {
+  if (!href.startsWith('/catalog/')) return null;
+  return href.slice('/catalog/'.length).split(/[?#]/)[0] || null;
+}
+
+function keepLink(link: NavLink, available: ReadonlySet<string>): boolean {
+  const slug = catalogSlug(link.href);
+  return slug === null || available.has(slug);
+}
+
+export function menuForCategories(
+  menu: MegaMenuColumn[],
+  available: ReadonlySet<string>,
+): MegaMenuColumn[] {
+  if (available.size === 0) return menu;
+
+  return menu
+    .map((column) => ({
+      ...column,
+      allLink:
+        column.allLink && !keepLink(column.allLink, available)
+          ? { label: 'Весь каталог', href: '/catalog' }
+          : column.allLink,
+      links: column.links.filter((link) => keepLink(link, available)),
+    }))
+    .filter((column) => column.links.length > 0);
+}
+
+export function linksForCategories(
+  groups: { title: string; links: NavLink[] }[],
+  available: ReadonlySet<string>,
+): { title: string; links: NavLink[] }[] {
+  if (available.size === 0) return groups;
+  return groups
+    .map((group) => ({ ...group, links: group.links.filter((link) => keepLink(link, available)) }))
+    .filter((group) => group.links.length > 0);
+}

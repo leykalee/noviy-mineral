@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/common/Icon';
 import { Portal } from '@/components/common/Portal';
-import { megaMenu, primaryNav } from '@/config/navigation';
+import { primaryNav } from '@/config/navigation';
+import type { MegaMenuColumn } from '@/config/navigation';
 import { cx } from '@/lib/cx';
 
 /**
@@ -13,7 +14,7 @@ import { cx } from '@/lib/cx';
  * Первый уровень — разделы, второй — ссылки внутри раздела.
  * Фокус запирается внутри панели, Escape закрывает.
  */
-export function MobileMenu() {
+export function MobileMenu({ columns }: { columns: MegaMenuColumn[] }) {
   const [open, setOpen] = useState(false);
   const [section, setSection] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -62,7 +63,7 @@ export function MobileMenu() {
     };
   }, [open, close]);
 
-  const activeSection = megaMenu.find((c) => c.title === section);
+  const activeSection = columns.find((c) => c.title === section);
 
   return (
     <>
@@ -147,7 +148,7 @@ export function MobileMenu() {
               ) : (
                 <>
                   <ul className="border-b border-border p-2">
-                    {megaMenu.map((column) => (
+                    {columns.map((column) => (
                       <li key={column.title}>
                         <button
                           type="button"
