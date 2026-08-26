@@ -42,8 +42,7 @@ export const storeConfig: StoreConfig = {
 
   contacts: {
     phone: null,
-    // почта из контактов сообщества ВКонтакте, публикация подтверждена заказчиком
-    email: 'noviy_mineral@mail.ru',
+    email: 'mail@noviymineral.ru',
     address: null,
     schedule: null,
     legalName: null,
