@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header';
 import { StoreProvider } from '@/components/store/StoreProvider';
 import { brandAssets, brandColors } from '@/config/brand';
 import { storeConfig } from '@/config/store';
+import { siteUrl } from '@/lib/site-url';
 import './globals.css';
 
 /**
@@ -19,7 +20,7 @@ const onest = Onest({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(siteUrl),
   title: {
     default: `${storeConfig.name} — ${storeConfig.descriptor.toLowerCase()}`,
     template: `%s — ${storeConfig.name}`,

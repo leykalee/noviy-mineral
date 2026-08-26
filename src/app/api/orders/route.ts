@@ -4,6 +4,7 @@ import { checkoutSchema, fieldErrors } from '@/lib/order-schema';
 import { applyPromoCode } from '@/lib/promo';
 import { getProductsByIds } from '@/lib/repository';
 import { nextOrderNumber, saveOrder } from '@/lib/orders-store';
+import { siteUrl } from '@/lib/site-url';
 import { getDeliveryProvider, getEmailProvider, getPaymentProvider } from '@/services';
 
 /**
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
       amount: total,
       methodId: paymentMethod.id,
       customer: { email: input.email, phone: input.phone, name: input.name },
-      returnUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/order/success?number=${number}`,
+      returnUrl: `${siteUrl}/order/success?number=${number}`,
     });
     paymentStatus = payment.state;
     confirmationUrl = payment.confirmationUrl;

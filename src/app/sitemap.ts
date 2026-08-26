@@ -2,7 +2,9 @@ import type { MetadataRoute } from 'next';
 import { categories } from '@/data/demo/taxonomy';
 import { products } from '@/data/demo/products';
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+import { siteUrl } from '@/lib/site-url';
+
+const BASE = siteUrl;
 
 /**
  * Карта сайта: только канонические URL.
