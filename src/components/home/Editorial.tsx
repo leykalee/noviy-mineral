@@ -33,13 +33,13 @@ export function Editorial({ product }: { product?: Product }) {
         </div>
 
         {product?.images[0] && (
-          <figure className="relative aspect-4/3 overflow-hidden rounded-[var(--radius-lg)]">
+          <figure className="relative aspect-4/3 overflow-hidden rounded-[var(--radius-lg)] bg-white/10">
             <Image
               src={product.images[0].url}
               alt={product.images[0].alt || product.name}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover"
+              className="object-contain"
             />
             <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/70 to-transparent p-4 pt-12 text-[14px] text-white/90">
               {product.name}
