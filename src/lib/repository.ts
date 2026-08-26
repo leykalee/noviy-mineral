@@ -43,21 +43,35 @@ async function allCategories(): Promise<Category[]> {
   return list;
 }
 
+/**
+ * Отказ Admik не должен ронять витрину.
+ *
+ * Раньше недоступный API выбрасывал ошибку прямо в рендер страницы, и главная
+ * отдавала 500 — при том что каталог и разделы переживали то же самое. Теперь
+ * при сбое отдаём последний успешный список, а если его нет — пустой: страницы
+ * покажут пустое состояние, но останутся рабочими вместе с меню и контактами.
+ */
 async function loadAllProducts(): Promise<Product[]> {
   if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.products;
 
-  const slugs: string[] = [];
-  const PAGE = 100;
-  for (let offset = 0; offset < 10000; offset += PAGE) {
-    const { items, total } = await listProductsPage({ limit: PAGE, offset });
-    for (const it of items) slugs.push(it.slug);
-    if (offset + PAGE >= total || items.length === 0) break;
-  }
+  try {
+    const slugs: string[] = [];
+    const PAGE = 100;
+    for (let offset = 0; offset < 10000; offset += PAGE) {
+      const { items, total } = await listProductsPage({ limit: PAGE, offset });
+      for (const it of items) slugs.push(it.slug);
+      if (offset + PAGE >= total || items.length === 0) break;
+    }
 
-  const details = await Promise.all(slugs.map((s) => getProduct(s).catch(() => null)));
-  const products = details.filter(Boolean).map((dto) => fromDetail(dto!));
-  cache = { at: Date.now(), products };
-  return products;
+    const details = await Promise.all(slugs.map((s) => getProduct(s).catch(() => null)));
+    const products = details.filter(Boolean).map((dto) => fromDetail(dto!));
+    cache = { at: Date.now(), products };
+    return products;
+  } catch (cause) {
+    // в логи сервера — иначе отказ каталога останется незамеченным
+    console.error('[catalog] Admik недоступен:', cause instanceof Error ? cause.message : cause);
+    return cache?.products ?? [];
+  }
 }
 
 /** slug категории + все её подкатегории (ветка), для фильтра каталога. */
