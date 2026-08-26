@@ -72,11 +72,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const specs: { label: string; value: string; href?: string }[] = [
     { label: 'Артикул', value: product.sku },
     product.mineralName
-      ? { label: 'Минерал', value: product.mineralName, href: `/search?q=${encodeURIComponent(product.mineralName)}` }
+      ? { label: 'Минерал', value: product.mineralName, href: product.mineralId ? `/catalog?mineral=${product.mineralId}` : undefined }
       : null,
 
     product.depositName
-      ? { label: 'Месторождение', value: product.depositName, href: `/search?q=${encodeURIComponent(product.depositName)}` }
+      ? { label: 'Месторождение', value: product.depositName, href: product.depositId ? `/catalog?deposit=${product.depositId}` : undefined }
       : null,
     product.country
       ? { label: 'Страна', value: product.country, href: `/catalog?country=${encodeURIComponent(product.country)}` }
