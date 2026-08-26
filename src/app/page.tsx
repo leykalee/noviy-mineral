@@ -28,7 +28,11 @@ export default async function HomePage() {
   ]);
 
   // в editorial и в форме показываем разные экземпляры, иначе фото дублируется
-  const editorialProduct = featured.find((p) => p.uniquePiece);
+  // В крупный блок берём минерал: у образцов фото 4:3 и они аккуратно вписываются
+  // в кадр, тогда как квадратные фото (шары/изделия) обрезались бы по краям.
+  const editorialProduct =
+    featured.find((p) => p.uniquePiece && p.kind === 'mineral') ??
+    featured.find((p) => p.uniquePiece);
   const leadProduct = featured.find((p) => p.uniquePiece && p.id !== editorialProduct?.id);
 
   return (
