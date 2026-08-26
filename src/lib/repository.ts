@@ -4,12 +4,15 @@ import type {
   CatalogFacets,
   CatalogQuery,
   CatalogResult,
+  Category,
   FacetValue,
+  Mineral,
   Product,
   ProductFeature,
   SortKey,
 } from '@/types';
 import {
+  categories,
   categoryBranchIds,
   categoryBySlug,
   colorById,
@@ -300,6 +303,78 @@ export async function countProductsByMineral(mineralSlug: string): Promise<numbe
   const mineral = mineralBySlug.get(mineralSlug);
   if (!mineral) return 0;
   return products.filter((p) => p.mineralId === mineral.id).length;
+}
+
+/**
+ * Разделы каталога для плиток на главной: только верхний уровень и только те,
+ * для которых есть изображение — плитка без фото смотрится как дырка в сетке.
+ * Счётчик считается по всей ветке, включая подкатегории.
+ */
+export interface CatalogSection {
+  category: Category;
+  count: number;
+}
+
+export async function getCatalogSections(): Promise<CatalogSection[]> {
+  return categories
+    .filter((c) => !c.parentId && c.image)
+    .sort((a, b) => a.order - b.order)
+    .map((category) => {
+      const ids = new Set(categoryBranchIds(category.id));
+      return { category, count: products.filter((p) => ids.has(p.categoryId)).length };
+    })
+    .filter((section) => section.count > 0);
+}
+
+/**
+ * Подборки по минеральным видам для главной.
+ *
+ * Коллекционер ищет не «изделие из камня», а конкретный вид — аметист,
+ * пирит, флюорит. Поэтому главная показывает ленты, сгруппированные по виду,
+ * а не одну общую сетку.
+ *
+ * Вид попадает в подборку, только если экземпляров хватает на полный ряд:
+ * ряд из одной карточки читается как ошибка вёрстки, а не как подборка.
+ */
+export interface MineralShowcase {
+  mineral: Mineral;
+  items: Product[];
+  /** Сколько всего экземпляров этого вида в каталоге */
+  total: number;
+}
+
+export async function getMineralShowcases(
+  mineralLimit = 3,
+  perMineral = 3,
+): Promise<MineralShowcase[]> {
+  const available = products.filter((p) => p.status === 'available' && p.stock > 0);
+
+  const byMineral = new Map<string, Product[]>();
+  for (const product of available) {
+    if (!product.mineralId) continue;
+    const bucket = byMineral.get(product.mineralId);
+    if (bucket) bucket.push(product);
+    else byMineral.set(product.mineralId, [product]);
+  }
+
+  return [...byMineral.entries()]
+    .map(([mineralId, items]) => ({ mineral: mineralById.get(mineralId), items }))
+    .filter(
+      (row): row is { mineral: Mineral; items: Product[] } =>
+        Boolean(row.mineral) && row.items.length >= perMineral,
+    )
+    // сначала популярные виды, при равенстве — те, где выбор шире
+    .sort(
+      (a, b) =>
+        Number(b.mineral.isPopular) - Number(a.mineral.isPopular) ||
+        b.items.length - a.items.length,
+    )
+    .slice(0, mineralLimit)
+    .map(({ mineral, items }) => ({
+      mineral,
+      items: [...items].sort(sorters.popular).slice(0, perMineral),
+      total: items.length,
+    }));
 }
 
 export type { ProductFeature };
