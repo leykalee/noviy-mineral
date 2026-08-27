@@ -94,25 +94,35 @@ export function LeadForm({ product }: { product?: Product }) {
 
             {sent ? (
               <div className="mt-8 rounded-[var(--radius-md)] border border-border bg-white p-6">
-                <p className="flex items-center gap-2.5 text-[17px] font-semibold text-success">
-                  <Icon name="check" size={22} />
-                  Вопрос отправлен
+                {/* при сбое вопрос никуда не сохраняется — говорить «отправлено»
+                    нельзя: покупатель будет ждать ответа, которого не будет */}
+                <p
+                  className={cx(
+                    'flex items-center gap-2.5 text-[17px] font-semibold',
+                    sent.delivered ? 'text-success' : 'text-warning',
+                  )}
+                >
+                  <Icon name={sent.delivered ? 'check' : 'alert'} size={22} />
+                  {sent.delivered ? 'Вопрос отправлен' : 'Вопрос не дошёл до магазина'}
                 </p>
                 <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
                   {sent.delivered
                     ? 'Ответим на указанную почту.'
-                    : 'Форма работает в тестовом режиме: почта магазина ещё не подключена, поэтому обращение сохранено только в журнале сервера. Чтобы вопрос дошёл наверняка, напишите в сообщество.'}
+                    : 'Связь с магазином прервалась, и обращение не сохранилось. Повторите попытку или напишите в сообщество ВКонтакте — так вопрос точно дойдёт.'}
                 </p>
                 <button
                   type="button"
                   onClick={() => {
                     setSent(null);
-                    setQuestion('');
-                    setConsent(false);
+                    // текст сохраняем, если вопрос не дошёл: иначе набирать заново
+                    if (sent.delivered) {
+                      setQuestion('');
+                      setConsent(false);
+                    }
                   }}
                   className="mt-4 text-[15px] font-medium text-brand hover:underline"
                 >
-                  Задать ещё один вопрос
+                  {sent.delivered ? 'Задать ещё один вопрос' : 'Попробовать ещё раз'}
                 </button>
               </div>
             ) : (
