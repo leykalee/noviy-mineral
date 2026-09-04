@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Icon } from '@/components/common/Icon';
 import { Portal } from '@/components/common/Portal';
-import { megaMenu } from '@/config/navigation';
+import type { MegaMenuColumn } from '@/config/navigation';
 import { cx } from '@/lib/cx';
 
 /**
@@ -13,7 +13,7 @@ import { cx } from '@/lib/cx';
  * Открывается по клику (не по hover — hover-only недоступен с клавиатуры),
  * закрывается по Escape, клику вне и переходу по ссылке.
  */
-export function MegaMenu() {
+export function MegaMenu({ columns }: { columns: MegaMenuColumn[] }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -74,7 +74,7 @@ export function MegaMenu() {
             className="animate-pop-in absolute left-0 top-[calc(100%+10px)] z-40 w-[min(1100px,calc(100vw-64px))] rounded-[var(--radius-md)] border border-border bg-white p-7 shadow-[var(--shadow-pop)]"
           >
             <div className="grid grid-cols-2 gap-x-8 gap-y-7 lg:grid-cols-5">
-              {megaMenu.map((column) => (
+              {columns.map((column) => (
                 <nav key={column.title} aria-label={column.title}>
                   <h3 className="mb-3 border-b border-border pb-2 text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                     {column.title}

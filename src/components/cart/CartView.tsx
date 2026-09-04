@@ -8,9 +8,8 @@ import { Icon } from '@/components/common/Icon';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { useStore } from '@/components/store/StoreProvider';
 import { useProductsByIds } from '@/components/store/useProductsByIds';
-import { storeConfig } from '@/config/store';
+import { usePromoCheck } from '@/components/store/usePromoCheck';
 import { formatPrice, isPurchasable, pluralize } from '@/lib/format';
-import { applyPromoCode } from '@/lib/promo';
 import { cx } from '@/lib/cx';
 
 /**
@@ -26,7 +25,6 @@ export function CartView() {
   const { products, loading, error } = useProductsByIds(ids);
 
   const [promoInput, setPromoInput] = useState('');
-  const [promoError, setPromoError] = useState<string | null>(null);
 
   const rows = cart
     .map((item) => ({ item, product: products.get(item.productId) }))
@@ -38,24 +36,21 @@ export function CartView() {
   const subtotal = rows.reduce((sum, { item, product }) => sum + product.price * item.quantity, 0);
   const unavailableRows = rows.filter(({ product }) => !isPurchasable(product.status, product.stock));
 
-  // скидка пересчитывается от актуальной суммы: изменили корзину — изменился и итог,
-  // а если условия кода перестали выполняться, скидки просто нет
-  const promoOutcome = promoCode ? applyPromoCode(promoCode, subtotal) : null;
-  const promo = promoOutcome?.ok ? promoOutcome.applied : null;
-  const promoConditionError = promoOutcome && !promoOutcome.ok ? promoOutcome.message : null;
-  const discount = promo ? promo.discount : 0;
+  // скидку подтверждает Admik: он же считает сумму заказа, поэтому считать
+  // её здесь нельзя — покупатель увидел бы одну цену, а заплатил другую
+  const promo = usePromoCheck(
+    cart.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+    promoCode,
+  );
+  const discount = promo.discount;
   const total = Math.max(0, subtotal - discount);
 
   const submitPromo = (event: React.FormEvent) => {
     event.preventDefault();
-    const outcome = applyPromoCode(promoInput, subtotal, promoCode);
-    if (outcome.ok) {
-      setPromoCode(outcome.applied.code);
-      setPromoError(null);
-      setPromoInput('');
-    } else {
-      setPromoError(outcome.message);
-    }
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoCode(code);
+    setPromoInput('');
   };
 
   if (!hydrated || (loading && rows.length === 0 && cart.length > 0)) {
@@ -201,45 +196,26 @@ export function CartView() {
               <input
                 id="promo"
                 value={promoInput}
-                onChange={(e) => {
-                  setPromoInput(e.target.value);
-                  setPromoError(null);
-                }}
+                onChange={(e) => setPromoInput(e.target.value)}
                 placeholder="Введите код"
-                aria-invalid={Boolean(promoError)}
-                aria-describedby={promoError ? 'promo-error' : undefined}
+                aria-invalid={Boolean(promo.message)}
+                aria-describedby={promo.message ? 'promo-error' : undefined}
                 className={cx(
                   'h-11 min-w-0 flex-1 rounded-[var(--radius-sm)] border bg-white px-3 text-[15px] outline-none transition-colors duration-[var(--dur-fast)]',
-                  promoError ? 'border-danger' : 'border-border-strong focus:border-brand',
+                  promo.message ? 'border-danger' : 'border-border-strong focus:border-brand',
                 )}
               />
-              <Button type="submit" variant="secondary" disabled={!promoInput.trim()}>
-                Применить
+              <Button
+                type="submit"
+                variant="secondary"
+                disabled={!promoInput.trim() || promo.checking}
+              >
+                {promo.checking ? 'Проверяем…' : 'Применить'}
               </Button>
             </div>
-            {promoError && (
+            {promo.message && (
               <p id="promo-error" role="alert" className="mt-2 text-[14px] text-danger">
-                {promoError}
-              </p>
-            )}
-            {promo && (
-              <p className="mt-2 flex items-center justify-between gap-2 text-[14px] text-success">
-                <span className="flex items-center gap-1.5">
-                  <Icon name="check" size={16} />
-                  Промокод {promo.code} применён
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPromoCode(null)}
-                  className="text-muted-foreground underline-offset-2 hover:underline"
-                >
-                  Убрать
-                </button>
-              </p>
-            )}
-            {promoConditionError && !promoError && (
-              <p role="alert" className="mt-2 text-[14px] text-warning">
-                {promoConditionError}{' '}
+                {promo.message}{' '}
                 <button
                   type="button"
                   onClick={() => setPromoCode(null)}
@@ -249,9 +225,19 @@ export function CartView() {
                 </button>
               </p>
             )}
-            {storeConfig.promoCodesAreDemo && !promo && (
-              <p className="mt-2 text-[13px] text-muted-foreground">
-                В прототипе работают демонстрационные коды, например МИНЕРАЛ10.
+            {promo.applied && promoCode && (
+              <p className="mt-2 flex items-center justify-between gap-2 text-[14px] text-success">
+                <span className="flex items-center gap-1.5">
+                  <Icon name="check" size={16} />
+                  Промокод {promoCode} применён
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPromoCode(null)}
+                  className="text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  Убрать
+                </button>
               </p>
             )}
           </form>

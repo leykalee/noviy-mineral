@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from '@/components/common/Icon';
 import { brandAssets } from '@/config/brand';
-import { footerNav } from '@/config/navigation';
+import { footerNav, linksForCategories } from '@/config/navigation';
+import { fetchCategories } from '@/lib/taxonomy-remote';
 import { hasAnyContact, storeConfig } from '@/config/store';
 
 /**
@@ -11,7 +12,10 @@ import { hasAnyContact, storeConfig } from '@/config/store';
  * Контакты рендерятся только те, что реально переданы заказчиком.
  * Пустые значения не превращаются в «уточняется» или выдуманные данные (п.61 ТЗ).
  */
-export function Footer() {
+export async function Footer() {
+  const categories = await fetchCategories();
+  const groups = linksForCategories(footerNav, new Set(categories.map((c) => c.slug)));
+
   const { contacts, social } = storeConfig;
   const year = new Date().getFullYear();
 
@@ -52,7 +56,7 @@ export function Footer() {
           </div>
 
           <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-x-8 gap-y-10">
-            {footerNav.map((column) => (
+            {groups.map((column) => (
               <nav key={column.title} aria-label={column.title}>
                 <h3 className="mb-4 flex h-5 items-center text-[13px] font-semibold uppercase leading-none tracking-[0.08em] text-muted-foreground">
                   {column.title}

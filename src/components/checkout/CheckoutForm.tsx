@@ -12,8 +12,8 @@ import { Icon } from '@/components/common/Icon';
 import { Field, inputClass } from '@/components/checkout/Field';
 import { useStore } from '@/components/store/StoreProvider';
 import { useProductsByIds } from '@/components/store/useProductsByIds';
+import { usePromoCheck } from '@/components/store/usePromoCheck';
 import { checkoutSchema, fieldErrors } from '@/lib/order-schema';
-import { applyPromoCode } from '@/lib/promo';
 import { formatPrice, isPurchasable } from '@/lib/format';
 import { cx } from '@/lib/cx';
 
@@ -53,7 +53,6 @@ function CheckoutFields({ paymentMethods }: { paymentMethods: PaymentMethod[] })
   );
   const [comment, setComment] = useState('');
   const [promoInput, setPromoInput] = useState('');
-  const [promoError, setPromoError] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -68,10 +67,13 @@ function CheckoutFields({ paymentMethods }: { paymentMethods: PaymentMethod[] })
     );
 
   const subtotal = rows.reduce((sum, { item, product }) => sum + product.price * item.quantity, 0);
-  // промокод приходит из общего состояния — он не теряется при переходе из корзины
-  const promoOutcome = promoCode ? applyPromoCode(promoCode, subtotal) : null;
-  const promo = promoOutcome?.ok ? promoOutcome.applied : null;
-  const discount = promo ? promo.discount : 0;
+  // промокод приходит из общего состояния — он не теряется при переходе из корзины,
+  // но действует он только если это подтвердил Admik: он считает сумму заказа
+  const promo = usePromoCheck(
+    cart.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+    promoCode,
+  );
+  const discount = promo.discount;
 
   const selectedOption =
     delivery.status === 'ready' ? delivery.options.find((o) => o.id === deliveryMethodId) : undefined;
@@ -128,14 +130,10 @@ function CheckoutFields({ paymentMethods }: { paymentMethods: PaymentMethod[] })
 
   const submitPromo = (event: React.FormEvent) => {
     event.preventDefault();
-    const outcome = applyPromoCode(promoInput, subtotal, promoCode);
-    if (outcome.ok) {
-      setPromoCode(outcome.applied.code);
-      setPromoError(null);
-      setPromoInput('');
-    } else {
-      setPromoError(outcome.message);
-    }
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoCode(code);
+    setPromoInput('');
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -152,7 +150,7 @@ function CheckoutFields({ paymentMethods }: { paymentMethods: PaymentMethod[] })
       pickupPointCode: pickupPointCode || undefined,
       paymentMethodId,
       comment: comment || undefined,
-      promoCode: promo?.code,
+      promoCode: promo.applied ? (promoCode ?? undefined) : undefined,
       items: rows.map(({ item }) => ({ productId: item.productId, quantity: item.quantity })),
     };
 
@@ -548,29 +546,38 @@ function CheckoutFields({ paymentMethods }: { paymentMethods: PaymentMethod[] })
               <input
                 id="checkout-promo"
                 value={promoInput}
-                onChange={(e) => {
-                  setPromoInput(e.target.value);
-                  setPromoError(null);
-                }}
-                aria-invalid={Boolean(promoError)}
+                onChange={(e) => setPromoInput(e.target.value)}
+                aria-invalid={Boolean(promo.message)}
                 className={cx(
                   'h-11 min-w-0 flex-1 rounded-[var(--radius-sm)] border bg-white px-3 text-[15px] outline-none',
-                  promoError ? 'border-danger' : 'border-border-strong focus:border-brand',
+                  promo.message ? 'border-danger' : 'border-border-strong focus:border-brand',
                 )}
               />
-              <Button type="button" variant="secondary" onClick={submitPromo} disabled={!promoInput.trim()}>
-                Применить
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={submitPromo}
+                disabled={!promoInput.trim() || promo.checking}
+              >
+                {promo.checking ? 'Проверяем…' : 'Применить'}
               </Button>
             </div>
-            {promoError && (
+            {promo.message && (
               <p role="alert" className="mt-2 text-[14px] text-danger">
-                {promoError}
+                {promo.message}{' '}
+                <button
+                  type="button"
+                  onClick={() => setPromoCode(null)}
+                  className="underline underline-offset-2"
+                >
+                  Убрать код
+                </button>
               </p>
             )}
-            {promo && (
+            {promo.applied && promoCode && (
               <p className="mt-2 flex items-center gap-1.5 text-[14px] text-success">
                 <Icon name="check" size={16} />
-                Промокод {promo.code} применён
+                Промокод {promoCode} применён
               </p>
             )}
           </form>

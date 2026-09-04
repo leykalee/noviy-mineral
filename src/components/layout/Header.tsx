@@ -4,6 +4,8 @@ import { MegaMenu } from '@/components/layout/MegaMenu';
 import { MobileMenu } from '@/components/layout/MobileMenu';
 import { PrimaryNav } from '@/components/layout/PrimaryNav';
 import { SearchBar } from '@/components/search/SearchBar';
+import { megaMenu, menuForCategories } from '@/config/navigation';
+import { fetchCategories } from '@/lib/taxonomy-remote';
 
 /**
  * Шапка (п.9 ТЗ).
@@ -11,7 +13,12 @@ import { SearchBar } from '@/components/search/SearchBar';
  * Desktop: логотип · крупный поиск · избранное / кабинет / корзина, ниже — навигация с «Каталогом».
  * Mobile: компактная строка + поиск отдельной строкой, каталог уходит в drawer.
  */
-export function Header() {
+export async function Header() {
+  // структуру меню задаёт заказчик, а разделы заводит владелец в админке:
+  // показываем только те пункты, за которыми в Admik действительно есть раздел
+  const categories = await fetchCategories();
+  const columns = menuForCategories(megaMenu, new Set(categories.map((c) => c.slug)));
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur-[6px]">
       <a
@@ -24,7 +31,7 @@ export function Header() {
       <div className="container-page">
         {/* верхняя строка */}
         <div className="flex h-16 items-center gap-3 lg:h-[76px] lg:gap-8">
-          <MobileMenu />
+          <MobileMenu columns={columns} />
           <Logo className="shrink-0" size="sm" />
 
           <div className="ml-auto hidden min-w-0 flex-1 lg:ml-0 lg:block">
@@ -43,7 +50,7 @@ export function Header() {
 
         {/* навигация — только desktop */}
         <nav aria-label="Основная навигация" className="hidden h-14 items-center gap-1 lg:flex">
-          <MegaMenu />
+          <MegaMenu columns={columns} />
           <PrimaryNav />
         </nav>
       </div>
